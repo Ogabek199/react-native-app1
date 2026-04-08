@@ -1,0 +1,62 @@
+{
+  "common": {
+    "journal": "Дневник",
+    "settings": "Настройки",
+    "save": "Сохранить",
+    "search": "Поиск",
+    "open": "Открыть",
+    "cancel": "Отмена",
+    "delete": "Удалить"
+  },
+  "home": {
+    "title": "Мои заметки",
+    "currentStreak": "СЕРИЯ",
+    "totalEntries": "ВСЕГО ЗАПИСЕЙ",
+    "recentEntries": "Недавние записи",
+    "viewAll": "Все",
+    "searchPlaceholder": "Поиск по записям...",
+    "emptyTitle": "Пока нет записей",
+    "emptyBody": "Нажмите + чтобы создать первую запись."
+  },
+  "compose": {
+    "title": "Новая запись",
+    "feeling": "Как вы себя чувствуете?",
+    "titlePlaceholder": "Заголовок...",
+    "bodyPlaceholder": "Начните писать здесь...",
+    "words": "{{count}} слов"
+  },
+  "settings": {
+    "title": "Профиль",
+    "accountSecurity": "АККАУНТ И БЕЗОПАСНОСТЬ",
+    "journalPrefs": "ПРЕДПОЧТЕНИЯ",
+    "support": "ПОДДЕРЖКА",
+    "passcodeLock": "PIN-код",
+    "passcodeLockSub": "Запрашивать PIN при запуске",
+    "biometric": "Биометрия",
+    "biometricSub": "FaceID или отпечаток",
+    "backupSync": "Резервное копирование",
+    "backupSyncSub": "Синхронизация 2 часа назад",
+    "dailyReminders": "Ежедневные напоминания",
+    "dailyRemindersSub": "21:00 • Каждый день",
+    "appTheme": "Тема",
+    "appThemeSub": "Сепия (тёплая)",
+    "dataExport": "Экспорт данных",
+    "dataExportSub": "PDF или JSON",
+    "helpCenter": "Центр помощи",
+    "helpCenterSub": "FAQ и руководства",
+    "feedback": "Обратная связь",
+    "feedbackSub": "Помогите улучшить",
+    "dangerZone": "Опасная зона",
+    "deleteAll": "Удалить все записи",
+    "deleteAllConfirmTitle": "Удалить все записи",
+    "deleteAllConfirmBody": "Вы уверены?",
+    "language": "Язык",
+    "dailyRemindersInfo": "Напоминание будет приходить каждый день в выбранное время.",
+    "remindersLabel": "Напоминания",
+    "pickTime": "Выбрать время",
+    "notificationsPermissionTitle": "Разрешение",
+    "notificationsPermissionBody": "Нужно разрешение на уведомления."
+  },
+  "languages": { "uz": "Узбекский", "ru": "Русский", "en": "Английский" }
+}
+

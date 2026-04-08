@@ -1,0 +1,62 @@
+{
+  "common": {
+    "journal": "Journal",
+    "settings": "Settings",
+    "save": "Save",
+    "search": "Search",
+    "open": "Open",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "home": {
+    "title": "My Reflections",
+    "currentStreak": "CURRENT STREAK",
+    "totalEntries": "TOTAL ENTRIES",
+    "recentEntries": "Recent Entries",
+    "viewAll": "View All",
+    "searchPlaceholder": "Search your memories...",
+    "emptyTitle": "No entries yet",
+    "emptyBody": "Tap the + button to write your first reflection."
+  },
+  "compose": {
+    "title": "Write Reflection",
+    "feeling": "How are you feeling?",
+    "titlePlaceholder": "Title of your reflection...",
+    "bodyPlaceholder": "Start your mindful reflection here...",
+    "words": "{{count}} Words"
+  },
+  "settings": {
+    "title": "Profile",
+    "accountSecurity": "ACCOUNT & SECURITY",
+    "journalPrefs": "JOURNAL PREFERENCES",
+    "support": "SUPPORT",
+    "passcodeLock": "Passcode Lock",
+    "passcodeLockSub": "Require PIN to open app",
+    "biometric": "Biometric Authentication",
+    "biometricSub": "Use FaceID or Fingerprint",
+    "backupSync": "Backup & Sync",
+    "backupSyncSub": "Last synced 2 hours ago",
+    "dailyReminders": "Daily Reminders",
+    "dailyRemindersSub": "9:00 PM • Every day",
+    "appTheme": "App Theme",
+    "appThemeSub": "Sepia (Warm)",
+    "dataExport": "Data Export",
+    "dataExportSub": "Download as PDF or JSON",
+    "helpCenter": "Help Center",
+    "helpCenterSub": "FAQ and User Guides",
+    "feedback": "Feedback",
+    "feedbackSub": "Help us improve",
+    "dangerZone": "Danger Zone",
+    "deleteAll": "Delete All Entries",
+    "deleteAllConfirmTitle": "Delete All Entries",
+    "deleteAllConfirmBody": "Are you sure?",
+    "language": "Language",
+    "dailyRemindersInfo": "A reminder will be sent every day at the selected time.",
+    "remindersLabel": "Reminders",
+    "pickTime": "Pick time",
+    "notificationsPermissionTitle": "Permission",
+    "notificationsPermissionBody": "Notifications permission is required."
+  },
+  "languages": { "uz": "Uzbek", "ru": "Russian", "en": "English" }
+}
+

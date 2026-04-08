@@ -1,0 +1,205 @@
+import * as React from 'react';
+import { Pressable, Switch, Text, TextInput, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+import { Screen } from '../shared/ui/Screen';
+import { Card } from '../shared/ui/Card';
+import { AppIcon } from '../shared/ui/AppIcon';
+import { useJournalFiltersStore } from '../store/useJournalFiltersStore';
+import { formatShortDate } from '../shared/lib/dateRange';
+import type { JournalMood } from '../features/journal/filters/types';
+
+function MoodCircle({ mood, selected, onPress }: { mood: JournalMood; selected: boolean; onPress: () => void }) {
+  const emoji = mood === 'Happy' ? '☀️' : mood === 'Calm' ? '☕️' : mood === 'Neutral' ? '🙂' : '🌧️';
+  return (
+    <Pressable
+      onPress={onPress}
+      className={[
+        'items-center justify-center h-14 w-14 rounded-2xl border',
+        selected ? 'bg-[#FCE7E7] border-danger' : 'bg-page border-[#E9ECEF]',
+        'active:opacity-80',
+      ].join(' ')}
+    >
+      <Text className="text-xl">{emoji}</Text>
+      <Text className={['text-[10px] mt-1 font-semibold', selected ? 'text-danger' : 'text-muted'].join(' ')}>
+        {mood}
+      </Text>
+    </Pressable>
+  );
+}
+
+export function JournalFiltersScreen() {
+  const navigation = useNavigation<any>();
+  const filters = useJournalFiltersStore((s) => s.filters);
+  const setQuery = useJournalFiltersStore((s) => s.setQuery);
+  const toggleMood = useJournalFiltersStore((s) => s.toggleMood);
+  const setWithPhotos = useJournalFiltersStore((s) => s.setWithPhotos);
+  const setWithAudio = useJournalFiltersStore((s) => s.setWithAudio);
+  const toggleTag = useJournalFiltersStore((s) => s.toggleTag);
+  const addTag = useJournalFiltersStore((s) => s.addTag);
+  const reset = useJournalFiltersStore((s) => s.reset);
+  const [tagText, setTagText] = React.useState('');
+
+  const dateLabel = React.useMemo(() => {
+    if (!filters.dateRange.start && !filters.dateRange.end) return 'Any date';
+    if (filters.dateRange.start && filters.dateRange.end) {
+      return `${formatShortDate(filters.dateRange.start)} - ${formatShortDate(filters.dateRange.end)}`;
+    }
+    return filters.dateRange.start ? `From ${formatShortDate(filters.dateRange.start)}` : `Until ${formatShortDate(filters.dateRange.end!)}`;
+  }, [filters.dateRange.end, filters.dateRange.start]);
+
+  return (
+    <Screen>
+      <View className="flex-1">
+        <View className="gap-4">
+          <View className="flex-row items-center gap-3">
+            <Pressable onPress={() => navigation.goBack()} className="h-10 w-10 items-center justify-center">
+              <AppIcon name="close" size={22} color="#111217" />
+            </Pressable>
+            <Text className="text-text font-extrabold text-base">Filters</Text>
+          </View>
+
+          <View className="rounded-2xl bg-card px-4 py-3 border border-[#E9ECEF] flex-row items-center gap-3">
+            <AppIcon name="search-outline" size={18} color="#8B8F95" />
+            <TextInput
+              value={filters.query}
+              onChangeText={setQuery}
+              placeholder="Search words or phrases..."
+              placeholderTextColor="#8B8F95"
+              className="flex-1 text-text"
+            />
+          </View>
+
+          <Card>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-muted text-xs font-semibold">DATE RANGE</Text>
+              <Pressable onPress={() => navigation.navigate('JournalCalendar')} className="active:opacity-80">
+                <Text className="text-danger font-semibold text-xs">Edit</Text>
+              </Pressable>
+            </View>
+            <Pressable
+              onPress={() => navigation.navigate('JournalCalendar')}
+              className="mt-3 rounded-2xl border border-[#E9ECEF] bg-page px-4 py-4 flex-row items-center justify-between active:opacity-80"
+            >
+              <View className="flex-row items-center gap-3">
+                <View className="h-10 w-10 rounded-2xl bg-[#FCE7E7] items-center justify-center">
+                  <AppIcon name="calendar-outline" size={18} color="#E04E4E" />
+                </View>
+                <View>
+                  <Text className="text-text font-extrabold">{dateLabel}</Text>
+                  <Text className="text-muted text-xs mt-1">LAST 14 DAYS</Text>
+                </View>
+              </View>
+              <AppIcon name="chevron-forward" size={18} color="#A9ADB2" />
+            </Pressable>
+          </Card>
+
+          <Card>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-muted text-xs font-semibold">MOODS</Text>
+              <Text className="text-danger font-semibold text-xs">View All</Text>
+            </View>
+            <View className="mt-3 flex-row gap-3">
+              {(['Happy', 'Calm', 'Neutral', 'Sad'] as const).map((m) => (
+                <MoodCircle key={m} mood={m} selected={filters.moods.includes(m)} onPress={() => toggleMood(m)} />
+              ))}
+            </View>
+          </Card>
+
+          <Card>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-muted text-xs font-semibold">TAGS</Text>
+              <Text className="text-danger font-semibold text-xs">Suggestions</Text>
+            </View>
+            <View className="mt-3 flex-row flex-wrap gap-2">
+              {['grateful', 'nature', 'travel', 'work', 'family'].map((t) => (
+                <Pressable
+                  key={t}
+                  onPress={() => toggleTag(t)}
+                  className={[
+                    'px-3 py-2 rounded-full border',
+                    filters.tags.includes(t) ? 'bg-[#FCE7E7] border-[#F3D6D6]' : 'bg-page border-[#E9ECEF]',
+                    'active:opacity-80',
+                  ].join(' ')}
+                >
+                  <Text className="text-text2 text-xs font-semibold">#{t}</Text>
+                </Pressable>
+              ))}
+              <Pressable
+                onPress={() => {
+                  addTag(tagText);
+                  setTagText('');
+                }}
+                className="px-3 py-2 rounded-full border border-[#E9ECEF] bg-page active:opacity-80"
+              >
+                <Text className="text-text2 text-xs font-semibold">+ Add Tag</Text>
+              </Pressable>
+            </View>
+            <View className="mt-3 rounded-2xl bg-page border border-[#E9ECEF] px-4 py-3">
+              <TextInput
+                value={tagText}
+                onChangeText={setTagText}
+                placeholder="Type to search or create new tag..."
+                placeholderTextColor="#8B8F95"
+                className="text-text"
+              />
+            </View>
+          </Card>
+
+          <Card>
+            <Text className="text-muted text-xs font-semibold">ATTACHMENTS</Text>
+            <View className="mt-3 gap-3">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-3">
+                  <AppIcon name="image-outline" size={18} color="#6B6F75" />
+                  <View>
+                    <Text className="text-text font-extrabold">Has Images</Text>
+                    <Text className="text-muted text-xs mt-1">Entries with photos attached</Text>
+                  </View>
+                </View>
+                <Switch
+                  value={filters.withPhotos}
+                  onValueChange={setWithPhotos}
+                  trackColor={{ false: '#E6E2E0', true: '#E04E4E' }}
+                  ios_backgroundColor="#E6E2E0"
+                />
+              </View>
+
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-3">
+                  <AppIcon name="mic-outline" size={18} color="#6B6F75" />
+                  <View>
+                    <Text className="text-text font-extrabold">Has Audio</Text>
+                    <Text className="text-muted text-xs mt-1">Voice recordings or snippets</Text>
+                  </View>
+                </View>
+                <Switch
+                  value={filters.withAudio}
+                  onValueChange={setWithAudio}
+                  trackColor={{ false: '#E6E2E0', true: '#E04E4E' }}
+                  ios_backgroundColor="#E6E2E0"
+                />
+              </View>
+            </View>
+          </Card>
+        </View>
+
+        <View className="mt-auto flex-row gap-3 items-center">
+          <Pressable
+            onPress={reset}
+            className="flex-1 rounded-2xl bg-page border border-[#E9ECEF] px-4 py-4 items-center active:opacity-85"
+          >
+            <Text className="text-text font-extrabold">Reset</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => navigation.navigate('JournalFiltered')}
+            className="flex-[2] rounded-2xl bg-danger px-4 py-4 items-center active:opacity-85"
+          >
+            <Text className="text-white font-extrabold">Apply Filters</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Screen>
+  );
+}
+

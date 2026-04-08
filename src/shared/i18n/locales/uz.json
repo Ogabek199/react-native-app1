@@ -1,0 +1,62 @@
+{
+  "common": {
+    "journal": "Kunlik",
+    "settings": "Sozlamalar",
+    "save": "Saqlash",
+    "search": "Izlash",
+    "open": "Ochish",
+    "cancel": "Bekor",
+    "delete": "O‘chirish"
+  },
+  "home": {
+    "title": "Mening qaydlarim",
+    "currentStreak": "KETMA-KET KUNLAR",
+    "totalEntries": "JAMI QAYDLAR",
+    "recentEntries": "So‘nggi qaydlar",
+    "viewAll": "Barchasi",
+    "searchPlaceholder": "Qaydlar ichidan qidiring...",
+    "emptyTitle": "Hali qayd yo‘q",
+    "emptyBody": "Birinchi qaydingiz uchun + tugmasini bosing."
+  },
+  "compose": {
+    "title": "Yangi qayd",
+    "feeling": "Kayfiyatingiz qanday?",
+    "titlePlaceholder": "Qayd sarlavhasi...",
+    "bodyPlaceholder": "Bugungi qaydingizni shu yerda yozing...",
+    "words": "{{count}} so‘z"
+  },
+  "settings": {
+    "title": "Profil",
+    "accountSecurity": "AKKAUNT & XAVFSIZLIK",
+    "journalPrefs": "KUNLIK SOZLAMALARI",
+    "support": "YORDAM",
+    "passcodeLock": "PIN-kod",
+    "passcodeLockSub": "Ilovani ochishda PIN so‘rash",
+    "biometric": "Biometrik himoya",
+    "biometricSub": "FaceID yoki barmoq izi",
+    "backupSync": "Zaxira nusxa & Sinxron",
+    "backupSyncSub": "Oxirgi sinxron: 2 soat oldin",
+    "dailyReminders": "Kunlik eslatmalar",
+    "dailyRemindersSub": "21:00 • Har kuni",
+    "appTheme": "Ilova mavzusi",
+    "appThemeSub": "Sepiya (iliq)",
+    "dataExport": "Ma’lumotni yuklab olish",
+    "dataExportSub": "JSON (keyin PDF ham bo‘ladi)",
+    "helpCenter": "Yordam markazi",
+    "helpCenterSub": "Savol-javob va qo‘llanma",
+    "feedback": "Fikr bildirish",
+    "feedbackSub": "Ilovani yaxshilashga yordam bering",
+    "dangerZone": "Xavfli bo‘lim",
+    "deleteAll": "Barcha qaydlarni o‘chirish",
+    "deleteAllConfirmTitle": "Barcha qaydlar o‘chirilsinmi?",
+    "deleteAllConfirmBody": "Ishonchingiz komilmi?",
+    "language": "Til",
+    "dailyRemindersInfo": "Har kuni tanlangan vaqtda eslatma yuboriladi.",
+    "remindersLabel": "Eslatmalar",
+    "pickTime": "Vaqtni tanlash",
+    "notificationsPermissionTitle": "Ruxsat",
+    "notificationsPermissionBody": "Bildirishnoma (notification) ruxsati kerak."
+  },
+  "languages": { "uz": "O‘zbek", "ru": "Rus", "en": "Ingliz" }
+}
+
