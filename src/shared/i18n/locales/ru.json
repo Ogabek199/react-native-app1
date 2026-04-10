@@ -6,11 +6,29 @@
     "search": "Поиск",
     "open": "Открыть",
     "cancel": "Отмена",
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "pleaseWait": "Подождите...",
+    "edit": "Редактировать"
+  },
+  "search": {
+    "placeholder": "Ключевое слово...",
+    "noResultsTitle": "Ничего не найдено",
+    "noResultsBody": "Попробуйте другое слово."
+  },
+  "dataExport": {
+    "exportJson": "Экспорт JSON",
+    "exportPdf": "Экспорт PDF"
   },
   "home": {
     "title": "Мои заметки",
+    "greeting": {
+      "morning": "Доброе утро, {{name}}",
+      "afternoon": "Добрый день, {{name}}",
+      "evening": "Добрый вечер, {{name}}"
+    },
+    "greetingSubtitle": "Запишите мысль сегодня ✍️",
     "currentStreak": "СЕРИЯ",
+    "currentStreakValue": "{{count}} дней",
     "totalEntries": "ВСЕГО ЗАПИСЕЙ",
     "recentEntries": "Недавние записи",
     "viewAll": "Все",
@@ -51,11 +69,158 @@
     "deleteAllConfirmTitle": "Удалить все записи",
     "deleteAllConfirmBody": "Вы уверены?",
     "language": "Язык",
-    "dailyRemindersInfo": "Напоминание будет приходить каждый день в выбранное время.",
+    "dailyRemindersInfo": "Напоминания для ежедневных записей.",
     "remindersLabel": "Напоминания",
     "pickTime": "Выбрать время",
+    "addReminder": "Добавить напоминание",
+    "noReminders": "Пока нет напоминаний. Нажмите «Добавить напоминание».",
+    "maxReminders": "Максимум 5 напоминаний.",
+    "deleteReminderTitle": "Удалить напоминание",
+    "deleteReminderBody": "Вы уверены, что хотите удалить это напоминание?",
     "notificationsPermissionTitle": "Разрешение",
-    "notificationsPermissionBody": "Нужно разрешение на уведомления."
+    "notificationsPermissionBody": "Нужно разрешение на уведомления.",
+    "biometricPrompt": "Подтвердите биометрией",
+    "permissionTitle": "Требуется разрешение",
+    "photoPermissionBody": "Разрешите доступ к фото.",
+    "editProfileTitle": "Редактировать профиль",
+    "nameLabel": "Имя",
+    "emailLabel": "Email",
+    "namePlaceholder": "Ваше имя",
+    "emailPlaceholder": "Ваш email",
+    "streakDays": "Серия: {{count}} дней",
+    "syncStatusTitle": "Статус синхронизации",
+    "syncStatusSubtitle": "Синхронизировано {{minutes}} мин назад",
+    "backupNow": "Сделать бэкап",
+    "backupFailed": "Не удалось сделать бэкап. Попробуйте ещё раз.",
+    "notSyncedYet": "Ещё не синхронизировано",
+    "syncing": "Синхронизация...",
+    "exportFailed": "Экспорт не удался",
+    "deleteAllWarning": "Удаление всех записей необратимо. Сначала экспортируйте данные, если хотите сохранить копию.",
+    "signOutTitle": "Выйти",
+    "signOutBody": "Вы уверены, что хотите выйти?",
+    "signOutCta": "Выйти",
+    "themeLight": "Светлая",
+    "themeDark": "Тёмная"
+  },
+  "notifications": {
+    "dailyReminderTitle": "Ежедневное напоминание",
+    "dailyReminderBody": "Сделайте короткую запись о сегодняшнем дне."
+  },
+  "auth": {
+    "errorTitle": "Ошибка",
+    "fillAllFields": "Пожалуйста, заполните все поля.",
+    "enterYourName": "Пожалуйста, введите имя.",
+    "invalidEmailOrPassword": "Неверный email или пароль.",
+    "welcomeBackTitle": "С возвращением",
+    "createAccountTitle": "Создать аккаунт",
+    "subtitleSignin": "Войдите, чтобы продолжить",
+    "subtitleSignup": "Начните свой путь осознанности",
+    "fullName": "Имя",
+    "emailAddress": "Email",
+    "password": "Пароль",
+    "namePlaceholder": "Ваше имя",
+    "emailPlaceholder": "user@example.com",
+    "passwordPlaceholder": "Введите пароль",
+    "forgotPassword": "Забыли пароль?",
+    "signInCta": "Войти",
+    "createAccountCta": "Создать аккаунт"
+  },
+  "onboarding": {
+    "titleLine1": "Добро пожаловать в",
+    "titleLine2": "Личный дневник",
+    "subtitle": "Личное пространство для ежедневных\nразмышлений и осознанной жизни.",
+    "getStarted": "Начать",
+    "alreadyHaveAccount": "Уже есть аккаунт ·",
+    "signIn": "Войти",
+    "features": {
+      "privateSecure": {
+        "title": "Приватно и безопасно",
+        "desc": "Ваши мысли защищены сквозным шифрованием и биометрической блокировкой."
+      },
+      "dailyPrompts": {
+        "title": "Ежедневные подсказки",
+        "desc": "Вдохновляйтесь каждый день вопросами, которые помогают глубже осмыслить."
+      },
+      "easySearch": {
+        "title": "Удобный поиск",
+        "desc": "Быстро находите записи по тегам, настроению и ключевым словам."
+      }
+    }
+  },
+  "entryDetail": {
+    "audioTitle": "Аудио",
+    "playbackFailed": "Не удалось воспроизвести",
+    "notFound": "Запись не найдена",
+    "deleteTitle": "Удалить",
+    "deleteBody": "Удалить эту запись?",
+    "untitled": "Без названия",
+    "attachments": "Вложения",
+    "image": "Изображение",
+    "voiceNote": "Голосовая заметка {{index}}",
+    "tapTo": "Нажмите, чтобы {{action}}",
+    "play": "воспроизвести",
+    "stop": "остановить",
+    "editEntry": "Редактировать"
+  },
+  "entryEditor": {
+    "enterTextTitle": "Сначала добавьте текст",
+    "enterTextBody": "Сначала напишите запись.",
+    "emptyEntryTitle": "Пустая запись",
+    "emptyEntryBody": "Введите заголовок или текст.",
+    "untitled": "Без названия",
+    "permissionTitle": "Требуется разрешение",
+    "galleryPermissionBody": "Разрешите доступ к фото.",
+    "cameraPermissionBody": "Разрешите доступ к камере.",
+    "micPermissionBody": "Разрешите доступ к микрофону.",
+    "locationPermissionBody": "Разрешите доступ к геолокации.",
+    "savedTitle": "Сохранено",
+    "imageAttached": "Изображение добавлено.",
+    "photoAttached": "Фото добавлено.",
+    "audioAttached": "Голосовая заметка добавлена.",
+    "galleryTitle": "Галерея",
+    "cameraTitle": "Камера",
+    "audioTitle": "Аудио",
+    "locationTitle": "Локация",
+    "failed": "Ошибка",
+    "recordingFailed": "Не удалось записать",
+    "stopFailed": "Не удалось остановить"
+  },
+  "filters": {
+    "title": "Фильтры",
+    "searchPlaceholder": "Поиск слов или фраз...",
+    "dateRange": "Диапазон дат",
+    "anyDate": "Любая дата",
+    "fromDate": "С {{date}}",
+    "untilDate": "До {{date}}",
+    "lastDays": "Последние {{count}} дней",
+    "moods": "Настроение",
+    "tags": "Теги",
+    "suggestions": "Подсказки",
+    "addTag": "+ Добавить тег",
+    "tagInputPlaceholder": "Введите для поиска или создания нового тега...",
+    "attachments": "Вложения",
+    "hasImages": "Есть фото",
+    "hasImagesSub": "Записи с прикреплёнными фото",
+    "hasAudio": "Есть аудио",
+    "hasAudioSub": "Голосовые записи или фрагменты",
+    "reset": "Сбросить",
+    "apply": "Применить фильтры"
+  },
+  "calendar": {
+    "selectDate": "Выбор даты",
+    "selectRange": "Выбор диапазона",
+    "pickStartEnd": "Выберите начало и конец",
+    "presetToday": "Сегодня",
+    "presetLast7Days": "Последние 7 дней",
+    "presetThisMonth": "Этот месяц",
+    "clear": "Очистить",
+    "apply": "Применить"
+  },
+  "moods": {
+    "happy": "Счастлив",
+    "calm": "Спокоен",
+    "neutral": "Нейтрально",
+    "sad": "Грустно"
   },
   "languages": { "uz": "Узбекский", "ru": "Русский", "en": "Английский" }
 }

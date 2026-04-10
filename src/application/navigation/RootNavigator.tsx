@@ -3,11 +3,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 import { EntryDetailScreen } from '../../screens/EntryDetailScreen';
 import { EntryEditorScreen } from '../../screens/EntryEditorScreen';
 import { JournalListScreen } from '../../screens/JournalListScreen';
 import { OnboardingScreen } from '../../screens/OnboardingScreen';
+import { SignInScreen } from '../../screens/SignInScreen';
 import { SearchScreen } from '../../screens/SearchScreen';
 import { SettingsScreen } from '../../screens/SettingsScreen';
 import { DailyRemindersScreen } from '../../screens/DailyRemindersScreen';
@@ -18,9 +20,11 @@ import { JournalFiltersScreen } from '../../screens/JournalFiltersScreen';
 import { JournalFilteredScreen } from '../../screens/JournalFilteredScreen';
 import { LanguageSelectScreen } from '../../screens/LanguageSelectScreen';
 import { AppIcon } from '../../shared/ui/AppIcon';
+import { useSettingsStore } from '../../store/useSettingsStore';
 
 export type RootStackParamList = {
   Onboarding: undefined;
+  SignIn: { mode?: 'signin' | 'signup' } | undefined;
   MainTabs: undefined;
   JournalList: undefined; // legacy (not used as a direct stack screen)
   EntryEditor: { entryId?: string } | undefined;
@@ -67,6 +71,7 @@ function NewTabButton(props: any) {
 
 function MainTabs() {
   const rootNav = useNavigation<any>();
+  const { t } = useTranslation();
   return (
     <Tabs.Navigator
       screenOptions={{
@@ -98,7 +103,7 @@ function MainTabs() {
         name="Journal"
         component={JournalListScreen}
         options={{
-          tabBarLabel: 'Journal',
+          tabBarLabel: t('common.journal'),
           tabBarIcon: ({ focused, color }) => (
             <AppIcon
               name={focused ? 'book' : 'book-outline'}
@@ -134,7 +139,7 @@ function MainTabs() {
         name="Settings"
         component={SettingsScreen}
         options={{
-          tabBarLabel: 'Settings',
+          tabBarLabel: t('common.settings'),
           tabBarIcon: ({ focused, color }) => (
             <AppIcon
               name={focused ? 'settings' : 'settings-outline'}
@@ -149,9 +154,15 @@ function MainTabs() {
 }
 
 export function RootNavigator() {
+  const isLoggedIn = useSettingsStore((s) => s.isLoggedIn);
+  const hydrated = useSettingsStore((s) => s.hydrated);
+
+  if (!hydrated) return null;
+
   return (
-    <Stack.Navigator initialRouteName="Onboarding" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName={isLoggedIn ? 'MainTabs' : 'Onboarding'} screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+      <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen
         name="EntryEditor"
@@ -167,7 +178,10 @@ export function RootNavigator() {
       <Stack.Screen
         name="DailyReminders"
         component={DailyRemindersScreen}
-        options={{ headerShown: true, title: 'Daily Reminders' }}
+        options={{
+          headerShown: true,
+          title: 'Daily Reminders',
+        }}
       />
       <Stack.Screen
         name="DataExport"

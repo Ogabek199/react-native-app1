@@ -1,86 +1,200 @@
 import * as React from 'react';
-import { Alert, Platform, Pressable, Switch, Text, View } from 'react-native';
+import { Alert, FlatList, Platform, Pressable, Switch, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 import { Card } from '../shared/ui/Card';
 import { Screen } from '../shared/ui/Screen';
-import { useSettingsStore } from '../store/useSettingsStore';
+import { AppIcon } from '../shared/ui/AppIcon';
+import { DailyReminderItem, useSettingsStore } from '../store/useSettingsStore';
 import {
   cancelReminder,
   ensureNotificationPermissions,
   scheduleDailyReminder,
 } from '../features/notifications/dailyReminder';
 
+const MAX_REMINDERS = 5;
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function fmtTime(h: number, m: number) {
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 export function DailyRemindersScreen() {
   const { t } = useTranslation();
-  const enabled = useSettingsStore((s) => s.dailyReminderEnabled);
-  const hour = useSettingsStore((s) => s.dailyReminderHour);
-  const minute = useSettingsStore((s) => s.dailyReminderMinute);
-  const notifId = useSettingsStore((s) => s.dailyReminderNotificationId);
-  const setDailyReminder = useSettingsStore((s) => s.setDailyReminder);
+  const reminders = useSettingsStore((s) => s.dailyReminders);
+  const setReminders = useSettingsStore((s) => s.setDailyReminders);
 
-  const [showPicker, setShowPicker] = React.useState(false);
-  const time = React.useMemo(() => {
-    const d = new Date();
-    d.setHours(hour);
-    d.setMinutes(minute);
-    d.setSeconds(0);
-    return d;
-  }, [hour, minute]);
+  const [pickerFor, setPickerFor] = React.useState<string | null>(null);
+  const [pickerValue, setPickerValue] = React.useState<Date | null>(null);
+
+  const save = React.useCallback(
+    async (next: DailyReminderItem[]) => {
+      await setReminders(next);
+    },
+    [setReminders],
+  );
+
+  const addReminder = React.useCallback(async () => {
+    if (reminders.length >= MAX_REMINDERS) {
+      Alert.alert(t('settings.dailyReminders'), t('settings.maxReminders'));
+      return;
+    }
+    const ok = await ensureNotificationPermissions();
+    if (!ok) {
+      Alert.alert(t('settings.notificationsPermissionTitle'), t('settings.notificationsPermissionBody'));
+      return;
+    }
+    const hour = 21;
+    const minute = 0;
+    const nid = await scheduleDailyReminder(
+      { hour, minute },
+      { title: t('notifications.dailyReminderTitle'), body: t('notifications.dailyReminderBody') },
+    );
+    const item: DailyReminderItem = { id: genId(), hour, minute, enabled: true, notificationId: nid };
+    await save([...reminders, item]);
+  }, [reminders, save, t]);
+
+  const toggleReminder = React.useCallback(
+    async (id: string, v: boolean) => {
+      const next = await Promise.all(
+        reminders.map(async (r) => {
+          if (r.id !== id) return r;
+          if (!v) {
+            await cancelReminder(r.notificationId);
+            return { ...r, enabled: false, notificationId: null };
+          }
+          const ok = await ensureNotificationPermissions();
+          if (!ok) {
+            Alert.alert(t('settings.notificationsPermissionTitle'), t('settings.notificationsPermissionBody'));
+            return r;
+          }
+          const nid = await scheduleDailyReminder(
+            { hour: r.hour, minute: r.minute },
+            { title: t('notifications.dailyReminderTitle'), body: t('notifications.dailyReminderBody') },
+          );
+          return { ...r, enabled: true, notificationId: nid };
+        }),
+      );
+      await save(next);
+    },
+    [reminders, save, t],
+  );
+
+  const deleteReminder = React.useCallback(
+    (id: string) => {
+      Alert.alert(t('settings.deleteReminderTitle'), t('settings.deleteReminderBody'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            const r = reminders.find((x) => x.id === id);
+            if (r) await cancelReminder(r.notificationId);
+            await save(reminders.filter((x) => x.id !== id));
+          },
+        },
+      ]);
+    },
+    [reminders, save, t],
+  );
+
+  const openPicker = React.useCallback(
+    (id: string) => {
+      const r = reminders.find((x) => x.id === id);
+      if (!r) return;
+      const d = new Date();
+      d.setHours(r.hour);
+      d.setMinutes(r.minute);
+      d.setSeconds(0);
+      setPickerValue(d);
+      setPickerFor(id);
+    },
+    [reminders],
+  );
 
   const onPickTime = React.useCallback(
     async (evt: DateTimePickerEvent, selected?: Date) => {
-      setShowPicker(false);
-      if (!selected) return;
-      await setDailyReminder({
-        enabled,
-        hour: selected.getHours(),
-        minute: selected.getMinutes(),
-        notificationId: notifId,
-      });
-      if (enabled) {
-        // reschedule
-        await cancelReminder(notifId);
-        const newId = await scheduleDailyReminder({
-          hour: selected.getHours(),
-          minute: selected.getMinutes(),
-        });
-        await setDailyReminder({
-          enabled: true,
-          hour: selected.getHours(),
-          minute: selected.getMinutes(),
-          notificationId: newId,
-        });
+      if (Platform.OS === 'android') {
+        const id = pickerFor;
+        setPickerFor(null);
+        setPickerValue(null);
+        if ((evt as any)?.type === 'dismissed' || !selected || !id) return;
+        const h = selected.getHours();
+        const m = selected.getMinutes();
+        const next = await Promise.all(
+          reminders.map(async (r) => {
+            if (r.id !== id) return r;
+            if (r.enabled) {
+              await cancelReminder(r.notificationId);
+              const nid = await scheduleDailyReminder(
+                { hour: h, minute: m },
+                { title: t('notifications.dailyReminderTitle'), body: t('notifications.dailyReminderBody') },
+              );
+              return { ...r, hour: h, minute: m, notificationId: nid };
+            }
+            return { ...r, hour: h, minute: m };
+          }),
+        );
+        await save(next);
+        return;
       }
+      if ((evt as any)?.type === 'dismissed' || !selected) return;
+      setPickerValue(selected);
     },
-    [enabled, notifId, setDailyReminder]
+    [pickerFor, reminders, save, t],
   );
 
-  const onToggle = React.useCallback(
-    async (v: boolean) => {
-      try {
-        if (!v) {
-          await cancelReminder(notifId);
-          await setDailyReminder({ enabled: false, hour, minute, notificationId: null });
-          return;
+  const confirmIosPicker = React.useCallback(async () => {
+    if (!pickerFor || !pickerValue) return;
+    const h = pickerValue.getHours();
+    const m = pickerValue.getMinutes();
+    const next = await Promise.all(
+      reminders.map(async (r) => {
+        if (r.id !== pickerFor) return r;
+        if (r.enabled) {
+          await cancelReminder(r.notificationId);
+          const nid = await scheduleDailyReminder(
+            { hour: h, minute: m },
+            { title: t('notifications.dailyReminderTitle'), body: t('notifications.dailyReminderBody') },
+          );
+          return { ...r, hour: h, minute: m, notificationId: nid };
         }
+        return { ...r, hour: h, minute: m };
+      }),
+    );
+    await save(next);
+    setPickerFor(null);
+    setPickerValue(null);
+  }, [pickerFor, pickerValue, reminders, save, t]);
 
-        const ok = await ensureNotificationPermissions();
-        if (!ok) {
-          Alert.alert(t('settings.notificationsPermissionTitle'), t('settings.notificationsPermissionBody'));
-          return;
-        }
+  const renderItem = React.useCallback(
+    ({ item }: { item: DailyReminderItem }) => (
+      <View className="flex-row items-center py-3">
+        <Pressable onPress={() => openPicker(item.id)} className="flex-1 active:opacity-70">
+          <Text className="text-text text-2xl font-bold">{fmtTime(item.hour, item.minute)}</Text>
+          <Text className="text-muted text-xs mt-0.5">
+            {item.enabled ? t('settings.dailyReminders') : t('common.cancel')}
+          </Text>
+        </Pressable>
 
-        await cancelReminder(notifId);
-        const newId = await scheduleDailyReminder({ hour, minute });
-        await setDailyReminder({ enabled: true, hour, minute, notificationId: newId });
-      } catch (e: any) {
-        Alert.alert(t('settings.notificationsPermissionTitle'), e?.message ?? 'Failed');
-        await setDailyReminder({ enabled: false, hour, minute, notificationId: null });
-      }
-    },
-    [hour, minute, notifId, setDailyReminder, t]
+        <Pressable onPress={() => deleteReminder(item.id)} className="mr-3 active:opacity-60">
+          <AppIcon name="trash-outline" size={20} color="#E04E4E" />
+        </Pressable>
+
+        <Switch
+          value={item.enabled}
+          onValueChange={(v) => toggleReminder(item.id, v)}
+          trackColor={{ false: '#E6E2E0', true: '#E04E4E' }}
+          ios_backgroundColor="#E6E2E0"
+          thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
+        />
+      </View>
+    ),
+    [deleteReminder, openPicker, t, toggleReminder],
   );
 
   return (
@@ -92,42 +206,43 @@ export function DailyRemindersScreen() {
         </Card>
 
         <Card>
-          <View className="flex-row items-center justify-between">
-            <View className="flex-1 pr-4">
-              <Text className="text-text font-extrabold">{t('settings.remindersLabel')}</Text>
-              <Text className="text-muted text-xs mt-1">
-                {time.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-            </View>
-            <Switch
-              value={enabled}
-              onValueChange={onToggle}
-              trackColor={{ false: '#E6E2E0', true: '#E04E4E' }}
-              ios_backgroundColor="#E6E2E0"
-              thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
+          {reminders.length === 0 ? (
+            <Text className="text-muted text-center py-4">{t('settings.noReminders')}</Text>
+          ) : (
+            <FlatList
+              data={reminders}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              scrollEnabled={false}
+              ItemSeparatorComponent={() => <View className="h-[1px] bg-elevated" />}
             />
-          </View>
+          )}
 
-          <View className="mt-4">
+          <Pressable
+            onPress={addReminder}
+            className="mt-4 rounded-2xl bg-elevated px-4 py-3 flex-row items-center justify-center gap-2 active:opacity-85"
+          >
+            <AppIcon name="add-circle-outline" size={20} color="#E04E4E" />
+            <Text className="text-text font-extrabold">{t('settings.addReminder')}</Text>
+          </Pressable>
+        </Card>
+      </View>
+
+      {pickerFor && pickerValue ? (
+        Platform.OS === 'android' ? (
+          <DateTimePicker value={pickerValue} mode="time" display="spinner" onChange={onPickTime} />
+        ) : (
+          <View className="absolute bottom-0 left-0 right-0 bg-card rounded-t-3xl px-5 pb-8 pt-4 shadow-black/10 shadow-lg">
+            <DateTimePicker value={pickerValue} mode="time" display="spinner" onChange={onPickTime} />
             <Pressable
-              onPress={() => setShowPicker(true)}
-              className="rounded-2xl bg-elevated px-4 py-3 items-center active:opacity-85"
+              onPress={confirmIosPicker}
+              className="mt-3 rounded-2xl bg-[#E04E4E] px-4 py-3 items-center active:opacity-85"
             >
-              <Text className="text-text font-extrabold">{t('settings.pickTime')}</Text>
+              <Text className="text-white font-extrabold">{t('common.save')}</Text>
             </Pressable>
           </View>
-        </Card>
-
-        {showPicker ? (
-          <DateTimePicker
-            value={time}
-            mode="time"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={onPickTime}
-          />
-        ) : null}
-      </View>
+        )
+      ) : null}
     </Screen>
   );
 }
-

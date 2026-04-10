@@ -2,14 +2,16 @@ import * as React from 'react';
 import { Modal, Pressable, Switch, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Calendar } from 'react-native-calendars';
+import { useTranslation } from 'react-i18next';
 
-import { Screen } from '../shared/ui/Screen';
+import { Screen } from '../shared/ui/Screen'; 
 import { AppIcon } from '../shared/ui/AppIcon';
 import { endOfDay, startOfDay } from '../shared/lib/dateRange';
 import { useJournalFiltersStore } from '../store/useJournalFiltersStore';
 
 export function JournalCalendarScreen() {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const dateRange = useJournalFiltersStore((s) => s.filters.dateRange);
   const setDateRange = useJournalFiltersStore((s) => s.setDateRange);
 
@@ -73,7 +75,7 @@ export function JournalCalendarScreen() {
 
           <View className="mt-4 flex-row items-center justify-between">
             <View>
-              <Text className="text-muted text-xs font-semibold">SELECT DATE</Text>
+              <Text className="text-muted text-xs font-semibold">{t('calendar.selectDate').toUpperCase()}</Text>
               <Text className="text-text font-extrabold text-lg">
                 {new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
               </Text>
@@ -90,8 +92,8 @@ export function JournalCalendarScreen() {
                   <AppIcon name="calendar-outline" size={18} color="#E04E4E" />
                 </View>
                 <View>
-                  <Text className="text-text font-extrabold">Select Range</Text>
-                  <Text className="text-muted text-xs mt-1">Pick start and end dates</Text>
+                  <Text className="text-text font-extrabold">{t('calendar.selectRange')}</Text>
+                  <Text className="text-muted text-xs mt-1">{t('calendar.pickStartEnd')}</Text>
                 </View>
               </View>
               <Switch
@@ -104,9 +106,9 @@ export function JournalCalendarScreen() {
 
             <View className="mt-4 flex-row gap-2">
               {[
-                { label: 'Today', onPress: () => { const s = startOfDay(today.getTime()); setStart(s); setEnd(endOfDay(s)); } },
-                { label: 'Last 7 days', onPress: () => { const e = endOfDay(today.getTime()); const s = startOfDay(today.getTime() - 6 * 24 * 60 * 60 * 1000); setStart(s); setEnd(e); } },
-                { label: 'This Month', onPress: () => { const d = new Date(today); d.setDate(1); const s = startOfDay(d.getTime()); const e = endOfDay(today.getTime()); setStart(s); setEnd(e); } },
+                { label: t('calendar.presetToday'), onPress: () => { const s = startOfDay(today.getTime()); setStart(s); setEnd(endOfDay(s)); } },
+                { label: t('calendar.presetLast7Days'), onPress: () => { const e = endOfDay(today.getTime()); const s = startOfDay(today.getTime() - 6 * 24 * 60 * 60 * 1000); setStart(s); setEnd(e); } },
+                { label: t('calendar.presetThisMonth'), onPress: () => { const d = new Date(today); d.setDate(1); const s = startOfDay(d.getTime()); const e = endOfDay(today.getTime()); setStart(s); setEnd(e); } },
               ].map((p) => (
                 <Pressable
                   key={p.label}
@@ -154,13 +156,13 @@ export function JournalCalendarScreen() {
               onPress={clear}
               className="flex-1 rounded-2xl bg-page border border-[#E9ECEF] px-4 py-4 items-center active:opacity-85"
             >
-              <Text className="text-text font-extrabold">Clear</Text>
+              <Text className="text-text font-extrabold">{t('calendar.clear')}</Text>
             </Pressable>
             <Pressable
               onPress={apply}
               className="flex-[2] rounded-2xl bg-danger px-4 py-4 items-center active:opacity-85"
             >
-              <Text className="text-white font-extrabold">Apply Filter</Text>
+              <Text className="text-white font-extrabold">{t('calendar.apply')}</Text>
             </Pressable>
           </View>
         </View>

@@ -6,11 +6,29 @@
     "search": "Search",
     "open": "Open",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "pleaseWait": "Please wait...",
+    "edit": "Edit"
+  },
+  "search": {
+    "placeholder": "Keyword...",
+    "noResultsTitle": "Nothing found",
+    "noResultsBody": "Try a different keyword."
+  },
+  "dataExport": {
+    "exportJson": "Export JSON",
+    "exportPdf": "Export PDF"
   },
   "home": {
     "title": "My Reflections",
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}"
+    },
+    "greetingSubtitle": "Capture a thought today ✍️",
     "currentStreak": "CURRENT STREAK",
+    "currentStreakValue": "{{count}} Days",
     "totalEntries": "TOTAL ENTRIES",
     "recentEntries": "Recent Entries",
     "viewAll": "View All",
@@ -51,11 +69,158 @@
     "deleteAllConfirmTitle": "Delete All Entries",
     "deleteAllConfirmBody": "Are you sure?",
     "language": "Language",
-    "dailyRemindersInfo": "A reminder will be sent every day at the selected time.",
+    "dailyRemindersInfo": "Set reminders to write a reflection every day.",
     "remindersLabel": "Reminders",
     "pickTime": "Pick time",
+    "addReminder": "Add Reminder",
+    "noReminders": "No reminders yet. Tap «Add Reminder» to create one.",
+    "maxReminders": "Maximum 5 reminders allowed.",
+    "deleteReminderTitle": "Delete Reminder",
+    "deleteReminderBody": "Are you sure you want to delete this reminder?",
     "notificationsPermissionTitle": "Permission",
-    "notificationsPermissionBody": "Notifications permission is required."
+    "notificationsPermissionBody": "Notifications permission is required.",
+    "biometricPrompt": "Confirm with biometrics",
+    "permissionTitle": "Permission needed",
+    "photoPermissionBody": "Please allow photo library access.",
+    "editProfileTitle": "Edit Profile",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "Your email",
+    "streakDays": "{{count}} Days Streak",
+    "syncStatusTitle": "Sync Status",
+    "syncStatusSubtitle": "Last synced {{minutes}}m ago",
+    "backupNow": "Backup Now",
+    "backupFailed": "Backup failed. Please try again.",
+    "notSyncedYet": "Not synced yet",
+    "syncing": "Syncing...",
+    "exportFailed": "Export failed",
+    "deleteAllWarning": "Deleting all entries is permanent and cannot be undone. Please export your data first if you wish to keep a copy.",
+    "signOutTitle": "Sign Out",
+    "signOutBody": "Are you sure you want to sign out?",
+    "signOutCta": "Sign Out",
+    "themeLight": "Light",
+    "themeDark": "Dark"
+  },
+  "notifications": {
+    "dailyReminderTitle": "Daily Reminder",
+    "dailyReminderBody": "Write a quick reflection for today."
+  },
+  "auth": {
+    "errorTitle": "Error",
+    "fillAllFields": "Please fill in all fields.",
+    "enterYourName": "Please enter your name.",
+    "invalidEmailOrPassword": "Invalid email or password.",
+    "welcomeBackTitle": "Welcome back",
+    "createAccountTitle": "Create Account",
+    "subtitleSignin": "Sign in to continue your journey",
+    "subtitleSignup": "Start your mindful journey",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "password": "Password",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "user@example.com",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot password?",
+    "signInCta": "Sign In",
+    "createAccountCta": "Create Account"
+  },
+  "onboarding": {
+    "titleLine1": "Welcome to Your",
+    "titleLine2": "Personal Diary",
+    "subtitle": "A private space for daily reflection\nand mindful living.",
+    "getStarted": "Get Started",
+    "alreadyHaveAccount": "I already have an account ·",
+    "signIn": "Sign In",
+    "features": {
+      "privateSecure": {
+        "title": "Private & Secure",
+        "desc": "Your thoughts are protected with end-to-end encryption and biometric lock."
+      },
+      "dailyPrompts": {
+        "title": "Daily Prompts",
+        "desc": "Get inspired every day with mindful questions that help you reflect deeper."
+      },
+      "easySearch": {
+        "title": "Easy Search",
+        "desc": "Quickly find past memories using tags, moods, and semantic keywords."
+      }
+    }
+  },
+  "entryDetail": {
+    "audioTitle": "Audio",
+    "playbackFailed": "Playback failed",
+    "notFound": "Entry not found",
+    "deleteTitle": "Delete",
+    "deleteBody": "Delete this entry?",
+    "untitled": "Untitled",
+    "attachments": "Attachments",
+    "image": "Image",
+    "voiceNote": "Voice Note {{index}}",
+    "tapTo": "Tap to {{action}}",
+    "play": "play",
+    "stop": "stop",
+    "editEntry": "Edit Entry"
+  },
+  "entryEditor": {
+    "enterTextTitle": "Add some text first",
+    "enterTextBody": "Write your reflection first.",
+    "emptyEntryTitle": "Empty entry",
+    "emptyEntryBody": "Please enter a title or some text.",
+    "untitled": "Untitled",
+    "permissionTitle": "Permission needed",
+    "galleryPermissionBody": "Please allow photo library access.",
+    "cameraPermissionBody": "Please allow camera access.",
+    "micPermissionBody": "Please allow microphone access.",
+    "locationPermissionBody": "Please allow location access.",
+    "savedTitle": "Saved",
+    "imageAttached": "Image attached.",
+    "photoAttached": "Photo attached.",
+    "audioAttached": "Voice note attached.",
+    "galleryTitle": "Gallery",
+    "cameraTitle": "Camera",
+    "audioTitle": "Audio",
+    "locationTitle": "Location",
+    "failed": "Failed",
+    "recordingFailed": "Recording failed",
+    "stopFailed": "Stop failed"
+  },
+  "filters": {
+    "title": "Filters",
+    "searchPlaceholder": "Search words or phrases...",
+    "dateRange": "Date Range",
+    "anyDate": "Any date",
+    "fromDate": "From {{date}}",
+    "untilDate": "Until {{date}}",
+    "lastDays": "Last {{count}} days",
+    "moods": "Moods",
+    "tags": "Tags",
+    "suggestions": "Suggestions",
+    "addTag": "+ Add Tag",
+    "tagInputPlaceholder": "Type to search or create new tag...",
+    "attachments": "Attachments",
+    "hasImages": "Has Images",
+    "hasImagesSub": "Entries with photos attached",
+    "hasAudio": "Has Audio",
+    "hasAudioSub": "Voice recordings or snippets",
+    "reset": "Reset",
+    "apply": "Apply Filters"
+  },
+  "calendar": {
+    "selectDate": "Select Date",
+    "selectRange": "Select Range",
+    "pickStartEnd": "Pick start and end dates",
+    "presetToday": "Today",
+    "presetLast7Days": "Last 7 days",
+    "presetThisMonth": "This Month",
+    "clear": "Clear",
+    "apply": "Apply Filter"
+  },
+  "moods": {
+    "happy": "Happy",
+    "calm": "Calm",
+    "neutral": "Neutral",
+    "sad": "Sad"
   },
   "languages": { "uz": "Uzbek", "ru": "Russian", "en": "English" }
 }

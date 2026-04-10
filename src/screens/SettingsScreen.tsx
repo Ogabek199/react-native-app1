@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Alert, Image, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { Alert, Image, Modal, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +14,7 @@ import { useSettingsStore } from '../store/useSettingsStore';
 import { initDb } from '../features/journal/db/client';
 import { db } from '../features/journal/db/client';
 import { AppIcon } from '../shared/ui/AppIcon';
-import { exportJournalJson } from '../features/journal/export/exportJson';
+import { exportJournalPdf } from '../features/journal/export/exportPdf';
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
@@ -25,7 +25,16 @@ export function SettingsScreen() {
   const setLanguage = useSettingsStore((s) => s.setLanguage);
   const profileImageUri = useSettingsStore((s) => s.profileImageUri);
   const setProfileImageUri = useSettingsStore((s) => s.setProfileImageUri);
+  const userName = useSettingsStore((s) => s.userName);
+  const userEmail = useSettingsStore((s) => s.userEmail);
+  const setUserProfile = useSettingsStore((s) => s.setUserProfile);
+  const lastSyncAt = useSettingsStore((s) => s.lastSyncAt);
+  const syncBusy = useSettingsStore((s) => s.syncBusy);
+  const backupNow = useSettingsStore((s) => s.backupNow);
   const [passcodeLock, setPasscodeLock] = React.useState(false);
+  const [editVisible, setEditVisible] = React.useState(false);
+  const [editName, setEditName] = React.useState(userName);
+  const [editEmail, setEditEmail] = React.useState(userEmail);
 
   React.useEffect(() => {
     // Ensure UI updates immediately when user changes language.
@@ -50,19 +59,19 @@ export function SettingsScreen() {
       }
 
       const res = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Biometrika bilan tasdiqlang',
+        promptMessage: t('settings.biometricPrompt'),
       });
       if (res.success) {
         await setLockEnabled(true);
       }
     },
-    [setLockEnabled]
+    [setLockEnabled, t]
   );
 
   const onPickProfileImage = React.useCallback(async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (perm.status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow photo library access.');
+      Alert.alert(t('settings.permissionTitle'), t('settings.photoPermissionBody'));
       return;
     }
 
@@ -118,19 +127,82 @@ export function SettingsScreen() {
 
           <View className="flex-1">
             <View className="flex-row items-center gap-2">
-              <Text className="text-text text-2xl font-extrabold">Eleanor Thorn</Text>
+              <Text className="text-text text-2xl font-extrabold">{userName}</Text>
               <View className="px-2 py-1 rounded-full bg-[#F3E9E6]">
                 <Text className="text-muted text-[10px] font-extrabold">PRO</Text>
               </View>
             </View>
-            <Text className="text-text2 text-base mt-1">eleanor.thorne@email.com</Text>
+            <Text className="text-text2 text-base mt-1">{userEmail}</Text>
 
-            <View className="flex-row items-center gap-2 mt-2">
-              <AppIcon name="calendar-outline" size={16} color="#E04E4E" />
-              <Text className="text-text font-semibold">124 Days Streak</Text>
+            <View className="flex-row items-center justify-between mt-2">
+              <View className="flex-row items-center gap-2">
+                <AppIcon name="calendar-outline" size={16} color="#E04E4E" />
+                <Text className="text-text font-semibold">{t('settings.streakDays', { count: 124 })}</Text>
+              </View>
+              <Pressable
+                onPress={() => {
+                  setEditName(userName);
+                  setEditEmail(userEmail);
+                  setEditVisible(true);
+                }}
+                className="h-8 w-8 rounded-full bg-[#F3F4F6] items-center justify-center active:opacity-70"
+              >
+                <AppIcon name="create-outline" size={16} color="#6B6F75" />
+              </Pressable>
             </View>
           </View>
         </View>
+
+        <Modal visible={editVisible} transparent animationType="fade">
+          <Pressable
+            onPress={() => setEditVisible(false)}
+            className="flex-1 bg-black/40 justify-center px-6"
+          >
+            <Pressable onPress={() => {}} className="bg-card rounded-3xl p-6">
+              <Text className="text-text text-lg font-extrabold mb-4">{t('settings.editProfileTitle')}</Text>
+
+              <Text className="text-muted text-xs font-semibold mb-1">{t('settings.nameLabel')}</Text>
+              <TextInput
+                value={editName}
+                onChangeText={setEditName}
+                className="border border-[#E9ECEF] rounded-2xl px-4 py-3 text-text text-base mb-3"
+                placeholder={t('settings.namePlaceholder')}
+                placeholderTextColor="#A9ADB2"
+              />
+
+              <Text className="text-muted text-xs font-semibold mb-1">{t('settings.emailLabel')}</Text>
+              <TextInput
+                value={editEmail}
+                onChangeText={setEditEmail}
+                className="border border-[#E9ECEF] rounded-2xl px-4 py-3 text-text text-base mb-4"
+                placeholder={t('settings.emailPlaceholder')}
+                placeholderTextColor="#A9ADB2"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              <View className="flex-row gap-3">
+                <Pressable
+                  onPress={() => setEditVisible(false)}
+                  className="flex-1 rounded-2xl bg-[#F3F4F6] py-3 items-center active:opacity-85"
+                >
+                  <Text className="text-text font-bold">{t('common.cancel')}</Text>
+                </Pressable>
+                <Pressable
+                  onPress={async () => {
+                    const name = editName.trim() || userName;
+                    const email = editEmail.trim() || userEmail;
+                    await setUserProfile(name, email);
+                    setEditVisible(false);
+                  }}
+                  className="flex-1 rounded-2xl bg-[#E04E4E] py-3 items-center active:opacity-85"
+                >
+                  <Text className="text-white font-bold">{t('common.save')}</Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
 
         <Card>
           <RowNav
@@ -159,12 +231,36 @@ export function SettingsScreen() {
             onValueChange={onToggle}
           />
           <Divider />
-          <RowNav
-            iconName="cloud-outline"
-            title={t('settings.backupSync')}
-            subtitle={t('settings.backupSyncSub')}
-            onPress={() => { }}
-          />
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-3 flex-1 pr-3">
+              <View className="h-10 w-10 rounded-full bg-[#FDEAEA] items-center justify-center">
+                <AppIcon name="sync-outline" size={20} color="#E04E4E" />
+              </View>
+              <View>
+                <Text className="text-text font-extrabold">{t('settings.syncStatusTitle')}</Text>
+                <Text className="text-muted text-xs mt-0.5">
+                  {syncBusy
+                    ? t('settings.syncing')
+                    : lastSyncAt
+                      ? t('settings.syncStatusSubtitle', { minutes: Math.max(1, Math.floor((Date.now() - lastSyncAt) / 60000)) })
+                      : t('settings.notSyncedYet')}
+                </Text>
+              </View>
+            </View>
+            <Pressable
+              onPress={async () => {
+                const ok = await backupNow();
+                if (!ok) {
+                  Alert.alert(t('settings.backupNow'), t('settings.backupFailed'));
+                }
+              }}
+              disabled={syncBusy}
+              className="rounded-full bg-[#E04E4E] px-4 py-2 active:opacity-85"
+              style={syncBusy ? { opacity: 0.6 } : undefined}
+            >
+              <Text className="text-white text-xs font-bold">{t('settings.backupNow')}</Text>
+            </Pressable>
+          </View>
         </Card>
 
         <Text className="text-muted text-xs font-semibold px-1">{t('settings.journalPrefs')}</Text>
@@ -172,16 +268,15 @@ export function SettingsScreen() {
           <RowNav
             iconName="notifications-outline"
             title={t('settings.dailyReminders')}
-            subtitle={t('settings.dailyRemindersSub')}
+            subtitle={(() => {
+              const r = useSettingsStore.getState().dailyReminders.filter((x) => x.enabled);
+              if (r.length === 0) return t('settings.dailyRemindersSub');
+              return r.map((x) => `${String(x.hour).padStart(2, '0')}:${String(x.minute).padStart(2, '0')}`).join(', ');
+            })()}
             onPress={() => navigation.navigate('DailyReminders')}
           />
           <Divider />
-          <RowNav
-            iconName="color-palette-outline"
-            title={t('settings.appTheme')}
-            subtitle={t('settings.appThemeSub')}
-            onPress={() => { }}
-          />
+          <ThemeRow />
           <Divider />
           <RowNav
             iconName="download-outline"
@@ -189,9 +284,9 @@ export function SettingsScreen() {
             subtitle={t('settings.dataExportSub')}
             onPress={async () => {
               try {
-                await exportJournalJson({ title: t('settings.dataExport') });
+                await exportJournalPdf({ title: t('settings.dataExport') });
               } catch (e: any) {
-                Alert.alert(t('settings.dataExport'), e?.message ?? 'Export failed');
+                Alert.alert(t('settings.dataExport'), e?.message ?? t('settings.exportFailed'));
               }
             }}
           />
@@ -228,8 +323,7 @@ export function SettingsScreen() {
             <Text className="text-danger font-extrabold">{t('settings.dangerZone')}</Text>
           </View>
           <Text className="text-text2 text-xs mt-2 leading-5">
-            Deleting all entries is permanent and cannot be undone. Please export your data first
-            if you wish to keep a copy.
+            {t('settings.deleteAllWarning')}
           </Text>
           <Pressable
             onPress={() => {
@@ -252,7 +346,31 @@ export function SettingsScreen() {
           </Pressable>
         </Card>
 
-        <Text className="text-muted text-center text-xs mt-2">SERENE JOURNAL\nVersion 1.0.0</Text>
+        <Pressable
+          onPress={() => {
+            Alert.alert(
+              t('settings.signOutTitle'),
+              t('settings.signOutBody'),
+              [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('settings.signOutCta'),
+                  style: 'destructive',
+                  onPress: async () => {
+                    await useSettingsStore.getState().signOut();
+                    navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+                  },
+                },
+              ],
+            );
+          }}
+          className="mt-2 rounded-2xl border border-[#E9ECEF] bg-card py-4 flex-row items-center justify-center gap-2 active:opacity-85"
+        >
+          <AppIcon name="log-out-outline" size={20} color="#E04E4E" />
+          <Text className="text-[#E04E4E] font-extrabold text-base">{t('settings.signOutCta')}</Text>
+        </Pressable>
+
+        <Text className="text-muted text-center text-xs mt-4">{'SERENE JOURNAL\nVersion 1.0.0'}</Text>
       </ScrollView>
     </Screen>
   );
@@ -293,6 +411,46 @@ function RowToggle({
         ios_backgroundColor="#E6E2E0"
         thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
       />
+    </View>
+  );
+}
+
+function ThemeRow() {
+  const { t } = useTranslation();
+  const [active, setActive] = React.useState<'light' | 'dark'>('light');
+  const isLight = active === 'light';
+
+  return (
+    <View className="flex-row items-center justify-between">
+      <View className="flex-row items-center gap-3">
+        <View className="h-10 w-10 rounded-2xl bg-[#F3F4F6] items-center justify-center">
+          <AppIcon name="settings-outline" size={20} color="#6B6F75" />
+        </View>
+        <Text className="text-text font-extrabold">{t('settings.appTheme')}</Text>
+      </View>
+
+      <View className="flex-row rounded-full bg-[#F3F4F6] p-1">
+        <Pressable
+          onPress={() => setActive('light')}
+          style={[
+            { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 },
+            isLight && { backgroundColor: '#FFFFFF', elevation: 1 },
+          ]}
+        >
+          <AppIcon name="sunny-outline" size={14} color={isLight ? '#E04E4E' : '#A9ADB2'} />
+          <Text style={{ fontSize: 12, fontWeight: '700', color: isLight ? '#111217' : '#A9ADB2' }}>{t('settings.themeLight')}</Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setActive('dark')}
+          style={[
+            { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 },
+            !isLight && { backgroundColor: '#FFFFFF', elevation: 1 },
+          ]}
+        >
+          <AppIcon name="moon-outline" size={14} color={!isLight ? '#E04E4E' : '#A9ADB2'} />
+          <Text style={{ fontSize: 12, fontWeight: '700', color: !isLight ? '#111217' : '#A9ADB2' }}>{t('settings.themeDark')}</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

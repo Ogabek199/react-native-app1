@@ -2,6 +2,7 @@ import * as React from 'react';
 import { FlatList, Image, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 import type { RootStackParamList } from '../application/navigation/RootNavigator';
 import { initDb } from '../features/journal/db/client';
@@ -14,9 +15,21 @@ import { Card } from '../shared/ui/Card';
 import { Screen } from '../shared/ui/Screen';
 import { AppIcon } from '../shared/ui/AppIcon';
 import { useJournalFiltersStore } from '../store/useJournalFiltersStore';
+import { useSettingsStore } from '../store/useSettingsStore';
+
+function useGreeting(t: (key: string, opts?: any) => string, name: string) {
+  const hour = new Date().getHours();
+  const first = name.split(' ')[0];
+  if (hour < 12) return t('home.greeting.morning', { name: first });
+  if (hour < 18) return t('home.greeting.afternoon', { name: first });
+  return t('home.greeting.evening', { name: first });
+}
 
 export function JournalListScreen() {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
+  const userName = useSettingsStore((s) => s.userName);
+  const profileImageUri = useSettingsStore((s) => s.profileImageUri);
   const [entries, setEntries] = React.useState<JournalEntry[]>([]);
   const filters = useJournalFiltersStore((s) => s.filters);
   const setQuery = useJournalFiltersStore((s) => s.setQuery);
@@ -65,7 +78,7 @@ export function JournalListScreen() {
     <Screen>
       <View className="items-center">
         <View className="w-full">
-          <Text className="text-text text-xl font-extrabold text-center">My Reflections</Text>
+          <Text className="text-text text-xl font-extrabold text-center">{t('home.title')}</Text>
           <Pressable
             onPress={() => {
               navigation.navigate('JournalCalendar');
@@ -75,23 +88,48 @@ export function JournalListScreen() {
             <AppIcon name="calendar-outline" size={22} color="#E04E4E" />
           </Pressable>
         </View>
-        <View className="h-[1px] bg-elevated w-full mt-4" />
+        <View className="h-[1px] bg-elevated w-full mt-6" />
       </View>
 
-      <View className="flex-row gap-4 mt-5">
+      <View className="mt-4 rounded-3xl bg-[#FDF5F3] border border-[#F3D6D6] px-4 py-4">
+        <View className="flex-row items-center gap-3">
+          <View className="h-14 w-14 rounded-full bg-white items-center justify-center overflow-hidden border-2 border-white"
+            style={{ shadowColor: '#E04E4E', shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 3 }}
+          >
+            {profileImageUri ? (
+              <Image source={{ uri: profileImageUri }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+            ) : (
+              <AppIcon name="person" size={26} color="#E04E4E" />
+            )}
+          </View>
+          <View className="flex-1">
+            <Text className="text-[#1A1C20] text-lg font-extrabold">{useGreeting(t, userName)}</Text>
+            <Text className="text-[#8B6F66] text-xs mt-0.5">{t('home.greetingSubtitle')}</Text>
+          </View>
+          <Pressable
+            onPress={() => navigation.navigate('EntryEditor', {})}
+            className="h-10 w-10 rounded-full bg-[#E04E4E] items-center justify-center active:opacity-80"
+            style={{ shadowColor: '#E04E4E', shadowOpacity: 0.3, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 4 }}
+          >
+            <AppIcon name="add" size={22} color="#FFFFFF" />
+          </Pressable>
+        </View>
+      </View>
+
+      <View className="flex-row gap-4 mt-4">
         <Card className="flex-1">
           <View className="h-11 w-11 rounded-full bg-danger items-center justify-center">
             <AppIcon name="flame" size={20} color="#FFFFFF" />
           </View>
-          <Text className="text-text text-2xl font-extrabold mt-3">12 Days</Text>
-          <Text className="text-muted text-xs mt-1">CURRENT STREAK</Text>
+          <Text className="text-text text-2xl font-extrabold mt-3">{t('home.currentStreakValue', { count: 12 })}</Text>
+          <Text className="text-muted text-xs mt-1">{t('home.currentStreak')}</Text>
         </Card>
         <Card className="flex-1 bg-[#FCE7E7]">
           <View className="h-11 w-11 rounded-full bg-danger items-center justify-center">
             <AppIcon name="book" size={20} color="#FFFFFF" />
           </View>
           <Text className="text-text text-2xl font-extrabold mt-3">{entries.length}</Text>
-          <Text className="text-muted text-xs mt-1">TOTAL ENTRIES</Text>
+          <Text className="text-muted text-xs mt-1">{t('home.totalEntries')}</Text>
         </Card>
       </View>
 
@@ -100,7 +138,7 @@ export function JournalListScreen() {
         <TextInput
           value={filters.query}
           onChangeText={setQuery}
-          placeholder="Search your memories..."
+          placeholder={t('home.searchPlaceholder')}
           placeholderTextColor="#8B8F95"
           className="flex-1 text-text"
         />
@@ -114,11 +152,11 @@ export function JournalListScreen() {
           <AppIcon name="funnel-outline" size={18} color="#8B8F95" />
         </Pressable>
         <View className="flex-row gap-2 flex-1">
-          <Chip label="Happy" selected={filters.moods.includes('Happy')} onPress={() => toggleMood('Happy')} />
-          <Chip label="Calm" selected={filters.moods.includes('Calm')} onPress={() => toggleMood('Calm')} />
-          <Chip label="Neutral" selected={filters.moods.includes('Neutral')} onPress={() => toggleMood('Neutral')} />
+          <Chip label={t('moods.happy')} selected={filters.moods.includes('Happy')} onPress={() => toggleMood('Happy')} />
+          <Chip label={t('moods.calm')} selected={filters.moods.includes('Calm')} onPress={() => toggleMood('Calm')} />
+          <Chip label={t('moods.neutral')} selected={filters.moods.includes('Neutral')} onPress={() => toggleMood('Neutral')} />
           <Chip
-            label="Sad"
+            label={t('moods.sad')}
             selected={filters.moods.includes('Sad')}
             onPress={() => toggleMood('Sad')}
           />
@@ -126,9 +164,9 @@ export function JournalListScreen() {
       </View>
 
       <View className="mt-6 flex-row items-center justify-between">
-        <Text className="text-text font-extrabold text-lg">Recent Entries</Text>
+        <Text className="text-text font-extrabold text-lg">{t('home.recentEntries')}</Text>
         <Pressable className="active:opacity-80" onPress={() => {}}>
-          <Text className="text-danger font-semibold">View All ›</Text>
+          <Text className="text-danger font-semibold">{t('home.viewAll')} ›</Text>
         </Pressable>
       </View>
 
@@ -136,12 +174,12 @@ export function JournalListScreen() {
         {list.length === 0 ? (
           <Card className="mt-6">
             <Text className="text-text text-base font-semibold mb-1">
-              {entries.length === 0 ? 'Hali qayd yo‘q' : 'Hech narsa topilmadi'}
+              {entries.length === 0 ? t('home.emptyTitle') : t('search.noResultsTitle')}
             </Text>
             <Text className="text-muted">
               {entries.length === 0
-                ? 'Pastdagi “+” tugmasini bosib birinchi qaydingizni yozing.'
-                : 'Filter yoki qidiruvni o‘zgartirib ko‘ring.'}
+                ? t('home.emptyBody')
+                : t('search.noResultsBody')}
             </Text>
           </Card>
         ) : (
@@ -164,6 +202,7 @@ export function JournalListScreen() {
 }
 
 function EntryRow({ entry, onPress }: { entry: JournalEntry; onPress: () => void }) {
+  const { t } = useTranslation();
   const img = journalRepo.getFirstImageUri(entry.id);
   const mood = entry.mood ?? 'Calm';
   const moodIcon =
@@ -181,14 +220,22 @@ function EntryRow({ entry, onPress }: { entry: JournalEntry; onPress: () => void
           <Text className="text-muted text-sm font-semibold">{formatDate(entry.createdAt)}</Text>
           <View className="flex-row items-center gap-2 rounded-full border border-[#E9ECEF] bg-page px-3 py-2">
             <AppIcon name={moodIcon as any} size={16} color="#6B6F75" />
-            <Text className="text-text2 text-xs font-semibold">{mood}</Text>
+            <Text className="text-text2 text-xs font-semibold">
+              {mood === 'Happy'
+                ? t('moods.happy')
+                : mood === 'Calm'
+                  ? t('moods.calm')
+                  : mood === 'Neutral'
+                    ? t('moods.neutral')
+                    : t('moods.sad')}
+            </Text>
           </View>
         </View>
 
         <View className="flex-row items-center mt-2">
           <View className="flex-1 pr-4">
             <Text className="text-text font-extrabold text-2xl" numberOfLines={1}>
-              {entry.title || 'Untitled'}
+              {entry.title || t('entryDetail.untitled')}
             </Text>
             <Text className="text-text2 mt-2 leading-6" numberOfLines={2}>
               {entry.body}

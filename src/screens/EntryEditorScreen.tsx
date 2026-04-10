@@ -1,30 +1,57 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Audio } from 'expo-av';
+import * as Location from 'expo-location';
+import { useTranslation } from 'react-i18next';
 
 import type { RootStackParamList } from '../application/navigation/RootNavigator';
 import { initDb } from '../features/journal/db/client';
 import { journalRepo } from '../features/journal/repo/journalRepo';
-import { Chip } from '../shared/ui/Chip';
 import { Screen } from '../shared/ui/Screen';
-import { TextField } from '../shared/ui/TextField';
 import { AppIcon } from '../shared/ui/AppIcon';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EntryEditor'>;
 
+const MOODS = ['Happy', 'Calm', 'Neutral', 'Sad'] as const;
+const MOOD_ICON: Record<string, string> = {
+  Happy: 'happy-outline',
+  Calm: 'happy-outline',
+  Neutral: 'remove-outline',
+  Sad: 'rainy-outline',
+};
+
+const PROMPTS = [
+  'What made me smile today?',
+  'One thing I learned...',
+  'I am grateful for...',
+  'Today I felt...',
+];
+
+function fmtDate() {
+  const d = new Date();
+  const day = d.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+  const rest = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase();
+  const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  return `${day}, ${rest} • ${time}`;
+}
+
 export function EntryEditorScreen({ navigation, route }: Props) {
+  const { t } = useTranslation();
   const entryId = route.params?.entryId;
   const [savedId, setSavedId] = React.useState<string | null>(entryId ?? null);
   const [title, setTitle] = React.useState('');
   const [body, setBody] = React.useState('');
-  const [mood, setMood] = React.useState<'Happy' | 'Calm' | 'Neutral' | 'Sad'>('Calm');
+  const [mood, setMood] = React.useState<(typeof MOODS)[number]>('Calm');
+  const [tags, setTags] = React.useState<string[]>(['Reflection', 'Grateful']);
   const [stickersOpen, setStickersOpen] = React.useState(false);
+  const [tagInput, setTagInput] = React.useState('');
   const [tagOpen, setTagOpen] = React.useState(false);
-  const [tagText, setTagText] = React.useState('');
-  const [boldOn, setBoldOn] = React.useState(false);
-  const [italicOn, setItalicOn] = React.useState(false);
-  const [largeTextOn, setLargeTextOn] = React.useState(false);
+
+  const [recording, setRecording] = React.useState<Audio.Recording | null>(null);
+  const [isRecording, setIsRecording] = React.useState(false);
+  const [recordingDuration, setRecordingDuration] = React.useState(0);
 
   React.useEffect(() => {
     initDb();
@@ -34,383 +61,366 @@ export function EntryEditorScreen({ navigation, route }: Props) {
     setTitle(entry.title);
     setBody(entry.body);
     setMood(entry.mood ?? 'Calm');
+    const found = `${entry.title} ${entry.body}`.match(/#(\w+)/g);
+    if (found) setTags([...new Set(found.map((t) => t.slice(1)))]);
   }, [entryId]);
 
-  const onSave = React.useCallback(() => {
-    const trimmedTitle = title.trim();
-    const trimmedBody = body.trim();
-    if (!trimmedTitle && !trimmedBody) {
-      Alert.alert('Bo‘sh qayd', 'Hech bo‘lmasa title yoki matn kiriting.');
-      return;
-    }
-
-    const saved = journalRepo.upsertEntry({
-      id: entryId,
-      title: trimmedTitle || 'Untitled',
-      body: trimmedBody,
-      mood,
-    });
-
-    setSavedId(saved.id);
-    navigation.replace('EntryDetail', { entryId: saved.id });
-  }, [title, body, entryId, navigation]);
+  React.useEffect(() => {
+    if (!isRecording) return;
+    const iv = setInterval(() => setRecordingDuration((d) => d + 1), 1000);
+    return () => clearInterval(iv);
+  }, [isRecording]);
 
   React.useEffect(() => {
-    navigation.setOptions({
-      headerTitle: entryId ? 'Edit Reflection' : 'Write Reflection',
-      headerRight: () => (
-        <Pressable
-          onPress={onSave}
-          style={{ paddingHorizontal: 12, paddingVertical: 6 }}
-          className="rounded-full bg-danger active:opacity-85"
-        >
-          <Text className="text-white font-extrabold">Save</Text>
-        </Pressable>
-      ),
-    });
-  }, [navigation, onSave, entryId]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
+  const wordCount = body.trim().split(/\s+/).filter(Boolean).length;
 
   const ensureSaved = React.useCallback((): string | null => {
     if (savedId) return savedId;
-    const trimmedTitle = title.trim();
-    const trimmedBody = body.trim();
-    if (!trimmedTitle && !trimmedBody) {
-      Alert.alert('Avval matn kiriting', 'Rasm qo‘shishdan oldin qaydni saqlaymiz.');
+    const tt = title.trim();
+    const b = body.trim();
+    if (!tt && !b) {
+      Alert.alert(t('entryEditor.enterTextTitle'), t('entryEditor.enterTextBody'));
       return null;
     }
-    const saved = journalRepo.upsertEntry({
-      title: trimmedTitle || 'Untitled',
-      body: trimmedBody,
-      mood,
-    });
+    const saved = journalRepo.upsertEntry({ title: tt || t('entryEditor.untitled'), body: b, mood });
     setSavedId(saved.id);
     return saved.id;
-  }, [savedId, title, body]);
+  }, [savedId, title, body, mood, t]);
+
+  const onSave = React.useCallback(() => {
+    const tt = title.trim();
+    const b = body.trim();
+    if (!tt && !b) {
+      Alert.alert(t('entryEditor.emptyEntryTitle'), t('entryEditor.emptyEntryBody'));
+      return;
+    }
+    const tagStr = tags.map((tg) => `#${tg}`).join(' ');
+    const finalBody = b + (tagStr ? `\n\n${tagStr}` : '');
+    const saved = journalRepo.upsertEntry({ id: savedId ?? entryId, title: tt || t('entryEditor.untitled'), body: finalBody, mood });
+    setSavedId(saved.id);
+    navigation.replace('EntryDetail', { entryId: saved.id });
+  }, [title, body, tags, mood, savedId, entryId, navigation, t]);
 
   const addFromGallery = React.useCallback(async () => {
     try {
       const id = ensureSaved();
       if (!id) return;
-
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (perm.status !== 'granted') {
-        Alert.alert('Ruxsat kerak', 'Galereyaga ruxsat bering.');
-        return;
-      }
-
-      // Android builds can be flaky with multiple selection depending on picker.
-      const res = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        quality: 0.9,
-        allowsEditing: true,
-        aspect: [1, 1],
-      });
+      if (perm.status !== 'granted') { Alert.alert(t('entryEditor.permissionTitle'), t('entryEditor.galleryPermissionBody')); return; }
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.9, allowsEditing: true, aspect: [1, 1] });
       if (res.canceled) return;
       const uri = res.assets?.[0]?.uri;
       if (!uri) return;
       journalRepo.addImageAttachment(id, uri);
-      Alert.alert('Saqlandi', 'Rasm biriktirildi.');
-    } catch (e: any) {
-      Alert.alert('Gallery', e?.message ?? 'Failed to pick image');
-    }
-  }, [ensureSaved]);
+      Alert.alert(t('entryEditor.savedTitle'), t('entryEditor.imageAttached'));
+    } catch (e: any) { Alert.alert(t('entryEditor.galleryTitle'), e?.message ?? t('entryEditor.failed')); }
+  }, [ensureSaved, t]);
 
   const takePhoto = React.useCallback(async () => {
     try {
       const id = ensureSaved();
       if (!id) return;
-
       const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (perm.status !== 'granted') {
-        Alert.alert('Ruxsat kerak', 'Kameraga ruxsat bering.');
-        return;
-      }
-
-      const res = await ImagePicker.launchCameraAsync({
-        quality: 0.9,
-        allowsEditing: true,
-        aspect: [1, 1],
-      });
+      if (perm.status !== 'granted') { Alert.alert(t('entryEditor.permissionTitle'), t('entryEditor.cameraPermissionBody')); return; }
+      const res = await ImagePicker.launchCameraAsync({ quality: 0.9, allowsEditing: true, aspect: [1, 1] });
       if (res.canceled) return;
       const uri = res.assets?.[0]?.uri;
       if (!uri) return;
       journalRepo.addImageAttachment(id, uri);
-      Alert.alert('Saqlandi', 'Surat biriktirildi.');
-    } catch (e: any) {
-      Alert.alert('Camera', e?.message ?? 'Failed to take photo');
-    }
-  }, [ensureSaved]);
+      Alert.alert(t('entryEditor.savedTitle'), t('entryEditor.photoAttached'));
+    } catch (e: any) { Alert.alert(t('entryEditor.cameraTitle'), e?.message ?? t('entryEditor.failed')); }
+  }, [ensureSaved, t]);
 
-  const appendToBody = React.useCallback(
-    (text: string) => {
-      setBody((prev) => (prev ? `${prev}${prev.endsWith(' ') ? '' : ' '}${text}` : text));
-    },
-    [setBody]
-  );
+  const startRecording = React.useCallback(async () => {
+    try {
+      const id = ensureSaved();
+      if (!id) return;
+      const perm = await Audio.requestPermissionsAsync();
+      if (!perm.granted) { Alert.alert(t('entryEditor.permissionTitle'), t('entryEditor.micPermissionBody')); return; }
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
+      const { recording: rec } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      setRecording(rec);
+      setIsRecording(true);
+      setRecordingDuration(0);
+    } catch (e: any) { Alert.alert(t('entryEditor.audioTitle'), e?.message ?? t('entryEditor.recordingFailed')); }
+  }, [ensureSaved, t]);
 
-  const onPickSticker = React.useCallback(
-    (emoji: string) => {
-      appendToBody(emoji);
-      setStickersOpen(false);
-    },
-    [appendToBody]
-  );
+  const stopRecording = React.useCallback(async () => {
+    if (!recording) return;
+    try {
+      setIsRecording(false);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
+      if (!uri) return;
+      const id = savedId ?? ensureSaved();
+      if (!id) return;
+      journalRepo.addAudioAttachment(id, uri);
+      Alert.alert(t('entryEditor.savedTitle'), t('entryEditor.audioAttached'));
+    } catch (e: any) { Alert.alert(t('entryEditor.audioTitle'), e?.message ?? t('entryEditor.stopFailed')); }
+  }, [recording, savedId, ensureSaved, t]);
+
+  const addLocation = React.useCallback(async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') { Alert.alert(t('entryEditor.permissionTitle'), t('entryEditor.locationPermissionBody')); return; }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const [place] = await Location.reverseGeocodeAsync({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+      if (place) {
+        const parts = [place.name, place.city, place.region].filter(Boolean);
+        const label = parts.join(', ') || `${loc.coords.latitude.toFixed(4)}, ${loc.coords.longitude.toFixed(4)}`;
+        setBody((prev) => (prev ? `${prev}\n📍 ${label}` : `📍 ${label}`));
+      }
+    } catch (e: any) { Alert.alert(t('entryEditor.locationTitle'), e?.message ?? t('entryEditor.failed')); }
+  }, [t]);
 
   const onAddTag = React.useCallback(() => {
-    const t = tagText.trim().replace(/^#/, '');
+    const t = tagInput.trim().replace(/^#/, '');
     if (!t) return;
-    appendToBody(`#${t}`);
-    setTagText('');
+    if (!tags.includes(t)) setTags((prev) => [...prev, t]);
+    setTagInput('');
     setTagOpen(false);
-  }, [appendToBody, tagText]);
+  }, [tagInput, tags]);
+
+  const removeTag = React.useCallback((tag: string) => {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  }, []);
 
   return (
-    <Screen>
-      <ScrollView contentContainerClassName="gap-4 pb-24">
-        <View className="rounded-3xl bg-[#FCE7E7] px-5 py-5 gap-4">
-          <Text className="text-text2 font-semibold">How are you feeling?</Text>
+    <View className="flex-1 bg-page">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
+        {/* Top bar */}
+        <View className="px-5 pt-12 pb-3 mb-3" style={{ borderBottomWidth: 1, borderBottomColor: '#E9ECEF' }}>
+          <View className="flex-row items-center justify-between">
+            <Pressable onPress={() => navigation.goBack()} className="h-10 w-10 rounded-full bg-[#F3F4F6] items-center justify-center active:opacity-70">
+              <AppIcon name="arrow-back" size={20} color="#111217" />
+            </Pressable>
+            <Pressable onPress={onSave} className="rounded-full bg-[#E04E4E] px-5 py-2 active:opacity-85">
+              <Text className="text-white text-sm font-extrabold">Save</Text>
+            </Pressable>
+          </View>
+        </View>
 
-          <View className="flex-row justify-between">
-            {(['Happy', 'Calm', 'Neutral', 'Sad'] as const).map((m) => {
+        <ScrollView className="flex-1 px-5" contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+
+          {/* CURRENT VIBE */}
+          <View className="flex-row items-center justify-between">
+            <Text className="text-muted text-xs font-extrabold tracking-widest">CURRENT VIBE</Text>
+            <View className="h-1 w-8 rounded-full bg-[#E04E4E]" />
+          </View>
+
+          <View className="flex-row gap-3 mt-4">
+            {MOODS.map((m) => {
               const selected = mood === m;
-              const icon =
-                m === 'Happy' ? 'sunny-outline' : m === 'Calm' ? 'happy-outline' : m === 'Neutral' ? 'remove-outline' : 'rainy-outline';
               return (
-                <View key={m} className="items-center w-[23%]">
-                  <Pressable
-                    onPress={() => setMood(m)}
-                    className={[
-                      'w-full rounded-3xl bg-page items-center justify-center py-4 border',
-                      selected ? 'border-danger' : 'border-[#E9ECEF]',
-                      'active:opacity-85',
-                    ].join(' ')}
+                <Pressable
+                  key={m}
+                  onPress={() => setMood(m)}
+                  style={[
+                    { flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 20 },
+                    selected
+                      ? { backgroundColor: '#E04E4E' }
+                      : { backgroundColor: '#F3F4F6' },
+                  ]}
+                  className="active:opacity-85"
+                >
+                  <View
+                    style={[
+                      { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+                      selected
+                        ? { borderColor: 'rgba(255,255,255,0.5)' }
+                        : { borderColor: '#DADDE2' },
+                    ]}
                   >
-                    <View
-                      className={[
-                        'h-11 w-11 rounded-full items-center justify-center border',
-                        selected ? 'border-danger' : 'border-[#DADDE2]',
-                      ].join(' ')}
-                    >
-                      <AppIcon name={icon as any} size={22} color={selected ? '#E04E4E' : '#A9ADB2'} />
-                    </View>
-                    <Text className={['mt-2 text-xs font-semibold', selected ? 'text-text' : 'text-muted'].join(' ')}>
-                      {m}
-                    </Text>
-                  </Pressable>
-                </View>
+                    <AppIcon name={MOOD_ICON[m] as any} size={20} color={selected ? '#FFFFFF' : '#A9ADB2'} />
+                  </View>
+                  <Text
+                    style={[
+                      { marginTop: 6, fontSize: 11, fontWeight: '700' },
+                      selected ? { color: '#FFFFFF' } : { color: '#8B8F95' },
+                    ]}
+                  >
+                    {m.toUpperCase()}
+                  </Text>
+                </Pressable>
               );
             })}
           </View>
 
-          <View className="flex-row items-center gap-3">
-            <View className="flex-row items-center gap-2 px-4 py-2 rounded-full bg-page border border-[#E9ECEF]">
-              <AppIcon name="calendar-outline" size={16} color="#6B6F75" />
-              <Text className="text-text2 text-xs font-semibold">{new Date().toLocaleDateString()}</Text>
-            </View>
-            <View className="flex-row items-center gap-2 px-4 py-2 rounded-full bg-page border border-[#E9ECEF]">
-              <AppIcon name="time-outline" size={16} color="#6B6F75" />
-              <Text className="text-text2 text-xs font-semibold">
-                {new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-              </Text>
-            </View>
-            <View className="ml-auto px-4 py-2 rounded-full bg-[#FCE7E7] border border-[#F3D6D6]">
-              <Text className="text-danger text-xs font-extrabold">
-                {body.trim().split(/\s+/).filter(Boolean).length} Words
-              </Text>
-            </View>
+          {/* Divider */}
+          <View className="h-[1px] bg-[#E9ECEF] mt-5 mb-4" />
+
+          {/* Tags */}
+          <View className="flex-row flex-wrap items-center gap-2">
+            {tags.map((tag) => (
+              <Pressable key={tag} onLongPress={() => removeTag(tag)} className="active:opacity-70">
+                <Text className="text-[#E04E4E] text-sm font-bold">#{tag}</Text>
+              </Pressable>
+            ))}
+            <Pressable onPress={() => setTagOpen(true)} className="flex-row items-center gap-1 active:opacity-70">
+              <AppIcon name="add" size={16} color="#8B8F95" />
+              <Text className="text-muted text-sm font-semibold">Add Tag</Text>
+            </Pressable>
           </View>
 
-          <TextField
+          {/* Title */}
+          <TextInput
             value={title}
             onChangeText={setTitle}
-            placeholder="Title of your reflection..."
-            returnKeyType="next"
-            className="text-2xl font-extrabold text-text"
+            placeholder="Untitled Reflection"
+            placeholderTextColor="#C8CCD2"
+            className="text-text text-2xl font-extrabold mt-5"
+            style={{ lineHeight: 32 }}
           />
 
-          <View className="w-full rounded-3xl bg-page border border-[#E9ECEF]">
-            <TextField
-              value={body}
-              onChangeText={setBody}
-              placeholder="Start your mindful reflection here..."
-              multiline
-              className={[
-                'min-h-[320px]',
-                largeTextOn ? 'text-lg' : 'text-base',
-                boldOn ? 'font-semibold' : '',
-                italicOn ? 'italic' : '',
-              ].join(' ')}
-              textAlignVertical="top"
-            />
-          </View>
-        </View>
+          {/* Date */}
+          <Text className="text-muted text-xs font-bold tracking-wide mt-2">{fmtDate()}</Text>
 
-        <View className="bg-page rounded-3xl px-6 py-4 flex-row items-center justify-between border border-[#E9ECEF]">
-          <View className="flex-row items-center gap-6">
-            <Pressable
-              onPress={() => setBoldOn((v) => !v)}
-              hitSlop={10}
-              className="h-10 w-10 items-center justify-center rounded-2xl active:opacity-80"
-            >
-              <Text className={['font-extrabold', boldOn ? 'text-danger' : 'text-text2'].join(' ')}>B</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setItalicOn((v) => !v)}
-              hitSlop={10}
-              className="h-10 w-10 items-center justify-center rounded-2xl active:opacity-80"
-            >
-              <Text className={['font-extrabold italic', italicOn ? 'text-danger' : 'text-text2'].join(' ')}>I</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setLargeTextOn((v) => !v)}
-              hitSlop={10}
-              className="h-10 w-10 items-center justify-center rounded-2xl active:opacity-80"
-            >
-              <Text className={['font-extrabold', largeTextOn ? 'text-danger' : 'text-text2'].join(' ')}>T</Text>
-            </Pressable>
-          </View>
-          <View className="flex-row items-center gap-6">
-            <Pressable
-              onPress={() => setStickersOpen(true)}
-              hitSlop={10}
-              className="h-10 w-10 items-center justify-center rounded-2xl active:opacity-80"
-            >
-              <AppIcon name="happy-outline" size={22} color="#6B6F75" />
-            </Pressable>
-            <Pressable
-              onPress={addFromGallery}
-              hitSlop={10}
-              className="h-10 w-10 items-center justify-center rounded-2xl active:opacity-80"
-            >
-              <AppIcon name="image-outline" size={22} color="#6B6F75" />
-            </Pressable>
-            <Pressable
-              onPress={takePhoto}
-              hitSlop={10}
-              className="h-10 w-10 items-center justify-center rounded-2xl active:opacity-80"
-            >
-              <AppIcon name="camera-outline" size={22} color="#6B6F75" />
-            </Pressable>
-            <Pressable
-              onPress={() => setTagOpen(true)}
-              hitSlop={10}
-              className="h-10 w-10 items-center justify-center rounded-2xl active:opacity-80"
-            >
-              <AppIcon name="pricetag-outline" size={22} color="#6B6F75" />
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                Alert.alert('More', 'Choose an action', [
-                  { text: 'Insert #Daily', onPress: () => appendToBody('#Daily') },
-                  { text: 'Insert #Thoughts', onPress: () => appendToBody('#Thoughts') },
-                  { text: 'Clear text', style: 'destructive', onPress: () => setBody('') },
-                  { text: 'Cancel', style: 'cancel' },
-                ]);
-              }}
-              hitSlop={10}
-              className="h-10 w-10 items-center justify-center rounded-2xl active:opacity-80"
-            >
-              <AppIcon name="ellipsis-horizontal" size={22} color="#6B6F75" />
-            </Pressable>
-          </View>
-        </View>
-      </ScrollView>
-
-      <StickerModal open={stickersOpen} onClose={() => setStickersOpen(false)} onPick={onPickSticker} />
-
-      <Modal transparent visible={tagOpen} animationType="fade" onRequestClose={() => setTagOpen(false)}>
-        <View className="flex-1 bg-black/40 items-center justify-center px-6">
-          <View className="w-full rounded-3xl bg-page px-5 py-5 border border-[#E9ECEF]">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-text font-extrabold text-base">Add tag</Text>
-              <Pressable onPress={() => setTagOpen(false)} className="h-10 w-10 items-center justify-center">
-                <AppIcon name="close" size={22} color="#111217" />
+          {/* Recording indicator */}
+          {isRecording ? (
+            <View className="flex-row items-center gap-3 rounded-2xl bg-[#FEE] border border-[#F3D6D6] px-4 py-3 mt-4">
+              <View className="h-3 w-3 rounded-full bg-[#E04E4E]" />
+              <Text className="text-[#E04E4E] font-bold text-sm">
+                Recording {Math.floor(recordingDuration / 60)}:{String(recordingDuration % 60).padStart(2, '0')}
+              </Text>
+              <Pressable onPress={stopRecording} className="ml-auto rounded-full bg-[#E04E4E] px-4 py-1.5 active:opacity-80">
+                <Text className="text-white text-xs font-bold">Stop</Text>
               </Pressable>
             </View>
-            <View className="mt-3 rounded-2xl bg-card border border-[#E9ECEF] px-4 py-3">
+          ) : null}
+
+          {/* Body */}
+          <TextInput
+            value={body}
+            onChangeText={setBody}
+            placeholder="What's on your mind? Take a moment to reflect..."
+            placeholderTextColor="#C8CCD2"
+            multiline
+            textAlignVertical="top"
+            className="text-text text-base mt-4"
+            style={{ minHeight: 200, lineHeight: 26 }}
+          />
+
+          {/* Prompts */}
+          <View className="mt-8">
+            <View className="flex-row items-center gap-2">
+              <Text className="text-base">✨</Text>
+              <Text className="text-muted text-xs font-extrabold tracking-widest">NEED A PROMPT?</Text>
+            </View>
+            <View className="flex-row flex-wrap gap-2 mt-3">
+              {PROMPTS.map((p) => (
+                <Pressable
+                  key={p}
+                  onPress={() => setBody((prev) => (prev ? `${prev}\n\n${p}` : p))}
+                  className="rounded-full border border-[#E9ECEF] bg-white px-4 py-2.5 active:opacity-70"
+                >
+                  <Text className="text-text text-xs font-semibold">{p}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+
+        {/* Bottom toolbar */}
+        <View
+          className="px-5 pb-6 pt-3 bg-page"
+          style={{ borderTopWidth: 1, borderTopColor: '#F0F0F0' }}
+        >
+          <View className="flex-row items-center">
+            <View className="flex-row items-center gap-5">
+              <Pressable onPress={addFromGallery} hitSlop={8} className="active:opacity-70">
+                <AppIcon name="image-outline" size={22} color="#6B6F75" />
+              </Pressable>
+              <Pressable onPress={takePhoto} hitSlop={8} className="active:opacity-70">
+                <AppIcon name="camera-outline" size={22} color="#6B6F75" />
+              </Pressable>
+              <Pressable onPress={isRecording ? stopRecording : startRecording} hitSlop={8} className="active:opacity-70">
+                <AppIcon name={isRecording ? 'stop-circle' : 'mic-outline'} size={22} color={isRecording ? '#E04E4E' : '#6B6F75'} />
+              </Pressable>
+              <Pressable onPress={addLocation} hitSlop={8} className="active:opacity-70">
+                <AppIcon name="location-outline" size={22} color="#6B6F75" />
+              </Pressable>
+              <Pressable onPress={() => setStickersOpen(true)} hitSlop={8} className="active:opacity-70">
+                <AppIcon name="happy-outline" size={22} color="#6B6F75" />
+              </Pressable>
+            </View>
+
+            <View className="ml-auto flex-row items-center gap-3">
+              <View className="items-end">
+                <Text className="text-muted text-[10px] font-semibold">Draft saved</Text>
+                <Text className="text-muted text-[10px] font-bold">{wordCount} words</Text>
+              </View>
+              <Pressable
+                onPress={onSave}
+                className="rounded-2xl bg-[#1A1C20] px-5 py-2.5 active:opacity-85"
+              >
+                <Text className="text-white text-sm font-extrabold">Draft</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+
+      <StickerModal open={stickersOpen} onClose={() => setStickersOpen(false)} onPick={(e) => { setBody((p) => (p ? `${p} ${e}` : e)); setStickersOpen(false); }} />
+
+      <Modal transparent visible={tagOpen} animationType="fade" onRequestClose={() => setTagOpen(false)}>
+        <Pressable onPress={() => setTagOpen(false)} className="flex-1 bg-black/40 items-center justify-center px-6">
+          <Pressable onPress={() => {}} className="w-full rounded-3xl bg-page px-5 py-5">
+            <Text className="text-text font-extrabold text-base mb-3">Add Tag</Text>
+            <View className="rounded-2xl bg-[#F3F4F6] px-4 py-3">
               <TextInput
-                value={tagText}
-                onChangeText={setTagText}
+                value={tagInput}
+                onChangeText={setTagInput}
                 placeholder="e.g. gratitude"
                 placeholderTextColor="#8B8F95"
                 className="text-text"
                 autoCapitalize="none"
+                onSubmitEditing={onAddTag}
               />
             </View>
-
             <View className="mt-3 flex-row flex-wrap gap-2">
-              {['daily', 'thoughts', 'work', 'family', 'travel', 'nature'].map((t) => (
-                <Pressable
-                  key={t}
-                  onPress={() => {
-                    setTagText(t);
-                  }}
-                  className="px-3 py-2 rounded-full bg-page border border-[#E9ECEF] active:opacity-80"
-                >
+              {['daily', 'thoughts', 'work', 'family', 'travel', 'nature', 'grateful'].map((t) => (
+                <Pressable key={t} onPress={() => { if (!tags.includes(t)) setTags((p) => [...p, t]); setTagOpen(false); }} className="px-3 py-2 rounded-full bg-[#F3F4F6] active:opacity-70">
                   <Text className="text-text2 text-xs font-semibold">#{t}</Text>
                 </Pressable>
               ))}
             </View>
-
-            <View className="mt-5 flex-row gap-3">
-              <Pressable
-                onPress={() => setTagOpen(false)}
-                className="flex-1 rounded-2xl bg-page border border-[#E9ECEF] px-4 py-4 items-center active:opacity-85"
-              >
-                <Text className="text-text font-extrabold">Cancel</Text>
-              </Pressable>
-              <Pressable
-                onPress={onAddTag}
-                className="flex-[2] rounded-2xl bg-danger px-4 py-4 items-center active:opacity-85"
-              >
-                <Text className="text-white font-extrabold">Add</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
+            <Pressable onPress={onAddTag} className="mt-4 rounded-2xl bg-[#E04E4E] py-3 items-center active:opacity-85">
+              <Text className="text-white font-extrabold">Add</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
       </Modal>
-    </Screen>
+    </View>
   );
 }
 
-function StickerModal({
-  open,
-  onClose,
-  onPick,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onPick: (emoji: string) => void;
-}) {
-  const emojis = React.useMemo(
-    () => [
-      '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😍','😘','😗','😙','😚','😋','😜','😝','😛','🤪','🤩','🥳','😎','🤓','🧐','😤','😭','😡','😴','😌','🤗','🤔','🫠','😶‍🌫️',
-      '☀️','🌤️','⛅️','🌧️','⛈️','🌈','⭐️','🌙','🔥','💧','🌊','🍀','🌸','🌻','🍁','❄️',
-      '❤️','💗','💖','💘','💝','💞','💔','✨','🎉','🎈','🎁','🏆','✅','⚡️','💡','📌',
-      '☕️','🍵','🍕','🍔','🍎','🍓','🍰','🍫',
-      '📷','🖼️','🎵','🎧','📚','📝','🧠','💪','🧘','🚶','🌍','✈️',
-    ],
-    []
-  );
+function StickerModal({ open, onClose, onPick }: { open: boolean; onClose: () => void; onPick: (emoji: string) => void }) {
+  const emojis = React.useMemo(() => [
+    '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😍','😘','😗','😙','😚','😋','😜','😝','😛','🤪','🤩','🥳','😎','🤓','🧐','😤','😭','😡','😴','😌','🤗','🤔','🫠','😶‍🌫️',
+    '☀️','🌤️','⛅️','🌧️','⛈️','🌈','⭐️','🌙','🔥','💧','🌊','🍀','🌸','🌻','🍁','❄️',
+    '❤️','💗','💖','💘','💝','💞','💔','✨','🎉','🎈','🎁','🏆','✅','⚡️','💡','📌',
+    '☕️','🍵','🍕','🍔','🍎','🍓','🍰','🍫',
+    '📷','🖼️','🎵','🎧','📚','📝','🧠','💪','🧘','🚶','🌍','✈️',
+  ], []);
 
   return (
     <Modal transparent visible={open} animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 bg-black/40 justify-end">
         <Pressable className="flex-1" onPress={onClose} />
-        <View className="bg-page rounded-t-3xl px-5 pt-4 pb-8 border border-[#E9ECEF]">
-          <View className="flex-row items-center justify-between">
+        <View className="bg-page rounded-t-3xl px-5 pt-4 pb-8">
+          <View className="flex-row items-center justify-between mb-4">
             <Text className="text-text font-extrabold text-base">Stickers</Text>
             <Pressable onPress={onClose} className="h-10 w-10 items-center justify-center">
               <AppIcon name="close" size={22} color="#111217" />
             </Pressable>
           </View>
-          <ScrollView className="mt-4" contentContainerClassName="flex-row flex-wrap gap-3 pb-6">
+          <ScrollView contentContainerClassName="flex-row flex-wrap gap-3 pb-6">
             {emojis.map((e) => (
-              <Pressable
-                key={e}
-                onPress={() => onPick(e)}
-                className="h-12 w-12 rounded-2xl bg-card border border-[#E9ECEF] items-center justify-center active:opacity-80"
-              >
+              <Pressable key={e} onPress={() => onPick(e)} className="h-12 w-12 rounded-2xl bg-[#F3F4F6] items-center justify-center active:opacity-70">
                 <Text className="text-2xl">{e}</Text>
               </Pressable>
             ))}
@@ -420,4 +430,3 @@ function StickerModal({
     </Modal>
   );
 }
-

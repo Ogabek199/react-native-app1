@@ -6,11 +6,29 @@
     "search": "Izlash",
     "open": "Ochish",
     "cancel": "Bekor",
-    "delete": "O‘chirish"
+    "delete": "O‘chirish",
+    "pleaseWait": "Kuting...",
+    "edit": "Tahrirlash"
+  },
+  "search": {
+    "placeholder": "Kalit so‘z...",
+    "noResultsTitle": "Hech narsa topilmadi",
+    "noResultsBody": "Boshqa so‘z bilan urinib ko‘ring."
+  },
+  "dataExport": {
+    "exportJson": "JSON eksport",
+    "exportPdf": "PDF eksport"
   },
   "home": {
     "title": "Mening qaydlarim",
+    "greeting": {
+      "morning": "Hayrli tong, {{name}}",
+      "afternoon": "Hayrli kun, {{name}}",
+      "evening": "Hayrli kech, {{name}}"
+    },
+    "greetingSubtitle": "Bugun bir fikr yozing ✍️",
     "currentStreak": "KETMA-KET KUNLAR",
+    "currentStreakValue": "{{count}} kun",
     "totalEntries": "JAMI QAYDLAR",
     "recentEntries": "So‘nggi qaydlar",
     "viewAll": "Barchasi",
@@ -51,11 +69,158 @@
     "deleteAllConfirmTitle": "Barcha qaydlar o‘chirilsinmi?",
     "deleteAllConfirmBody": "Ishonchingiz komilmi?",
     "language": "Til",
-    "dailyRemindersInfo": "Har kuni tanlangan vaqtda eslatma yuboriladi.",
+    "dailyRemindersInfo": "Har kuni qayd yozishni eslatib turuvchi bildirishnomalar.",
     "remindersLabel": "Eslatmalar",
     "pickTime": "Vaqtni tanlash",
+    "addReminder": "Eslatma qo'shish",
+    "noReminders": "Hali eslatma yo'q. «Eslatma qo'shish» tugmasini bosing.",
+    "maxReminders": "Eng ko'pi bilan 5 ta eslatma.",
+    "deleteReminderTitle": "Eslatmani o'chirish",
+    "deleteReminderBody": "Bu eslatmani o'chirishni xohlaysizmi?",
     "notificationsPermissionTitle": "Ruxsat",
-    "notificationsPermissionBody": "Bildirishnoma (notification) ruxsati kerak."
+    "notificationsPermissionBody": "Bildirishnoma (notification) ruxsati kerak.",
+    "biometricPrompt": "Biometrika bilan tasdiqlang",
+    "permissionTitle": "Ruxsat kerak",
+    "photoPermissionBody": "Iltimos, galereyaga kirish ruxsatini bering.",
+    "editProfileTitle": "Profilni tahrirlash",
+    "nameLabel": "Ism",
+    "emailLabel": "Email",
+    "namePlaceholder": "Ismingiz",
+    "emailPlaceholder": "Emailingiz",
+    "streakDays": "{{count}} kun ketma-ket",
+    "syncStatusTitle": "Sync holati",
+    "syncStatusSubtitle": "Oxirgi sync: {{minutes}} daqiqa oldin",
+    "backupNow": "Backup qilish",
+    "backupFailed": "Backup bo‘lmadi. Qayta urinib ko‘ring.",
+    "notSyncedYet": "Hali sync qilinmagan",
+    "syncing": "Sync qilinyapti...",
+    "exportFailed": "Export muvaffaqiyatsiz",
+    "deleteAllWarning": "Barcha qaydlarni o‘chirish qaytarilmaydi. Nusxa saqlamoqchi bo‘lsangiz, avval eksport qiling.",
+    "signOutTitle": "Chiqish",
+    "signOutBody": "Haqiqatan ham chiqmoqchimisiz?",
+    "signOutCta": "Chiqish",
+    "themeLight": "Yorug‘",
+    "themeDark": "Tungi"
+  },
+  "notifications": {
+    "dailyReminderTitle": "Kunlik eslatma",
+    "dailyReminderBody": "Bugun uchun qisqa qayd yozing."
+  },
+  "auth": {
+    "errorTitle": "Xatolik",
+    "fillAllFields": "Iltimos, barcha maydonlarni to‘ldiring.",
+    "enterYourName": "Iltimos, ismingizni kiriting.",
+    "invalidEmailOrPassword": "Email yoki parol noto‘g‘ri.",
+    "welcomeBackTitle": "Xush kelibsiz",
+    "createAccountTitle": "Akkaunt yaratish",
+    "subtitleSignin": "Davom etish uchun tizimga kiring",
+    "subtitleSignup": "Mindful sayohatingizni boshlang",
+    "fullName": "Ism",
+    "emailAddress": "Email",
+    "password": "Parol",
+    "namePlaceholder": "Ismingiz",
+    "emailPlaceholder": "user@example.com",
+    "passwordPlaceholder": "Parolingizni kiriting",
+    "forgotPassword": "Parolni unutdingizmi?",
+    "signInCta": "Kirish",
+    "createAccountCta": "Akkaunt yaratish"
+  },
+  "onboarding": {
+    "titleLine1": "Xush kelibsiz",
+    "titleLine2": "Shaxsiy kundaligingizga",
+    "subtitle": "Har kuni fikr yuritish va mindful hayot\nuchun shaxsiy makon.",
+    "getStarted": "Boshlash",
+    "alreadyHaveAccount": "Akkountim bor ·",
+    "signIn": "Kirish",
+    "features": {
+      "privateSecure": {
+        "title": "Maxfiy va himoyalangan",
+        "desc": "Qaydlaringiz end-to-end shifrlash va biometrik himoya bilan saqlanadi."
+      },
+      "dailyPrompts": {
+        "title": "Kunlik promptlar",
+        "desc": "Har kuni chuqurroq o‘ylashga yordam beradigan savollar bilan ilhom oling."
+      },
+      "easySearch": {
+        "title": "Oson qidiruv",
+        "desc": "Tag, kayfiyat va kalit so‘zlar orqali tezda eski qaydlarni toping."
+      }
+    }
+  },
+  "entryDetail": {
+    "audioTitle": "Audio",
+    "playbackFailed": "Ijro etib bo‘lmadi",
+    "notFound": "Qayd topilmadi",
+    "deleteTitle": "O‘chirish",
+    "deleteBody": "Bu qaydni o‘chirasizmi?",
+    "untitled": "Sarlavhasiz",
+    "attachments": "Ilovalar",
+    "image": "Rasm",
+    "voiceNote": "Ovozli qayd {{index}}",
+    "tapTo": "{{action}} uchun bosing",
+    "play": "ijro etish",
+    "stop": "to‘xtatish",
+    "editEntry": "Tahrirlash"
+  },
+  "entryEditor": {
+    "enterTextTitle": "Avval matn kiriting",
+    "enterTextBody": "Avval qaydni yozing.",
+    "emptyEntryTitle": "Bo‘sh qayd",
+    "emptyEntryBody": "Hech bo‘lmasa sarlavha yoki matn kiriting.",
+    "untitled": "Sarlavhasiz",
+    "permissionTitle": "Ruxsat kerak",
+    "galleryPermissionBody": "Iltimos, galereyaga ruxsat bering.",
+    "cameraPermissionBody": "Iltimos, kameraga ruxsat bering.",
+    "micPermissionBody": "Iltimos, mikrofonga ruxsat bering.",
+    "locationPermissionBody": "Iltimos, joylashuvga ruxsat bering.",
+    "savedTitle": "Saqlandi",
+    "imageAttached": "Rasm biriktirildi.",
+    "photoAttached": "Surat biriktirildi.",
+    "audioAttached": "Ovozli xabar biriktirildi.",
+    "galleryTitle": "Galereya",
+    "cameraTitle": "Kamera",
+    "audioTitle": "Audio",
+    "locationTitle": "Joylashuv",
+    "failed": "Xatolik",
+    "recordingFailed": "Yozib bo‘lmadi",
+    "stopFailed": "To‘xtatib bo‘lmadi"
+  },
+  "filters": {
+    "title": "Filtrlar",
+    "searchPlaceholder": "So‘z yoki ibora qidiring...",
+    "dateRange": "Sana oralig‘i",
+    "anyDate": "Istalgan sana",
+    "fromDate": "{{date}} dan",
+    "untilDate": "{{date}} gacha",
+    "lastDays": "Oxirgi {{count}} kun",
+    "moods": "Kayfiyatlar",
+    "tags": "Teglar",
+    "suggestions": "Tavsiyalar",
+    "addTag": "+ Teg qo‘shish",
+    "tagInputPlaceholder": "Yangi teg yaratish yoki qidirish uchun yozing...",
+    "attachments": "Ilovalar",
+    "hasImages": "Rasm bor",
+    "hasImagesSub": "Rasm biriktirilgan qaydlar",
+    "hasAudio": "Audio bor",
+    "hasAudioSub": "Ovozli yozuvlar yoki bo‘laklar",
+    "reset": "Tozalash",
+    "apply": "Filtrlarni qo‘llash"
+  },
+  "calendar": {
+    "selectDate": "Sanani tanlash",
+    "selectRange": "Oraliqni tanlash",
+    "pickStartEnd": "Boshlanish va tugash sanasini tanlang",
+    "presetToday": "Bugun",
+    "presetLast7Days": "Oxirgi 7 kun",
+    "presetThisMonth": "Shu oy",
+    "clear": "Tozalash",
+    "apply": "Qo‘llash"
+  },
+  "moods": {
+    "happy": "Xursand",
+    "calm": "Tinch",
+    "neutral": "Oddiy",
+    "sad": "Xafa"
   },
   "languages": { "uz": "O‘zbek", "ru": "Rus", "en": "Ingliz" }
 }

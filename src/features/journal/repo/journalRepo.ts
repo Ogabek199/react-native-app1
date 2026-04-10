@@ -137,6 +137,20 @@ export const journalRepo = {
     return rowToAttachment(row);
   },
 
+  addAudioAttachment(entryId: string, uri: string): Attachment {
+    const now = Date.now();
+    const id = makeId('att');
+    db.runSync(
+      `INSERT INTO attachments (id, entry_id, uri, type, created_at) VALUES (?,?,?,?,?)`,
+      [id, entryId, uri, 'audio', now]
+    );
+    const row = db.getFirstSync(
+      `SELECT id, entry_id, uri, type, created_at FROM attachments WHERE id = ?`,
+      [id]
+    );
+    return rowToAttachment(row);
+  },
+
   deleteAttachment(id: string) {
     db.runSync(`DELETE FROM attachments WHERE id = ?`, [id]);
   },

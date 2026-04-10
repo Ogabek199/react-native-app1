@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import type { RootStackParamList } from '../application/navigation/RootNavigator';
 import { initDb } from '../features/journal/db/client';
@@ -14,6 +15,7 @@ import { TextField } from '../shared/ui/TextField';
 type Props = NativeStackScreenProps<RootStackParamList, 'Search'>;
 
 export function SearchScreen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = React.useState('');
   const [results, setResults] = React.useState<JournalEntry[]>([]);
 
@@ -33,14 +35,14 @@ export function SearchScreen({ navigation }: Props) {
         <TextField
           value={query}
           onChangeText={setQuery}
-          placeholder="Kalit so‘z..."
+          placeholder={t('search.placeholder')}
           autoFocus
         />
 
         {results.length === 0 && query.trim() ? (
           <Card>
-            <Text className="text-text font-semibold">Hech narsa topilmadi</Text>
-            <Text className="text-muted mt-1">Boshqa so‘z bilan urinib ko‘ring.</Text>
+            <Text className="text-text font-semibold">{t('search.noResultsTitle')}</Text>
+            <Text className="text-muted mt-1">{t('search.noResultsBody')}</Text>
           </Card>
         ) : null}
 
