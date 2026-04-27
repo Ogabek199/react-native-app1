@@ -54,11 +54,11 @@ function EntryCard({ entry, onPress }: { entry: JournalEntry; onPress: () => voi
           : 'cafe-outline';
   return (
     <Pressable onPress={onPress} className="active:opacity-80">
-      <View className="rounded-3xl bg-card border border-[#E9ECEF] px-5 py-5 shadow-black/5 shadow-lg">
+      <View className="rounded-3xl bg-card border border-elevated px-5 py-5 shadow-black/5 shadow-lg">
         <View className="flex-row items-start justify-between">
           <Text className="text-muted text-sm font-semibold">{formatDate(entry.createdAt)}</Text>
-          <View className="flex-row items-center gap-2 rounded-full border border-[#E9ECEF] bg-page px-3 py-2">
-            <AppIcon name={moodIcon as any} size={16} color="#6B6F75" />
+          <View className="flex-row items-center gap-2 rounded-full border border-elevated bg-page px-3 py-2">
+            <AppIcon name={moodIcon as any} size={16} color="#A9ADB2" />
             <Text className="text-text2 text-xs font-semibold">{mood}</Text>
           </View>
         </View>
@@ -114,11 +114,11 @@ export function JournalFilteredScreen() {
       <View className="gap-4">
         <View className="flex-row items-center justify-between">
           <Pressable onPress={() => navigation.goBack()} className="h-10 w-10 items-center justify-center">
-            <AppIcon name="chevron-back" size={22} color="#111217" />
+            <AppIcon name="chevron-back" size={22} color="#A9ADB2" />
           </Pressable>
           <Text className="text-text font-extrabold text-base">Filtered</Text>
           <Pressable onPress={() => navigation.navigate('JournalFilters')} className="h-10 w-10 items-center justify-center">
-            <AppIcon name="options-outline" size={22} color="#111217" />
+            <AppIcon name="options-outline" size={22} color="#A9ADB2" />
           </Pressable>
         </View>
 

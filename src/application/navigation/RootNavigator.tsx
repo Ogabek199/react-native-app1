@@ -2,13 +2,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useTheme } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 
 import { EntryDetailScreen } from '../../screens/EntryDetailScreen';
 import { EntryEditorScreen } from '../../screens/EntryEditorScreen';
 import { JournalListScreen } from '../../screens/JournalListScreen';
-import { OnboardingScreen } from '../../screens/OnboardingScreen';
+import OnboardingScreen from '../../screens/OnboardingScreen';
 import { SignInScreen } from '../../screens/SignInScreen';
 import { SearchScreen } from '../../screens/SearchScreen';
 import { SettingsScreen } from '../../screens/SettingsScreen';
@@ -72,6 +72,7 @@ function NewTabButton(props: any) {
 function MainTabs() {
   const rootNav = useNavigation<any>();
   const { t } = useTranslation();
+  const { colors, dark } = useTheme();
   return (
     <Tabs.Navigator
       screenOptions={{
@@ -86,17 +87,17 @@ function MainTabs() {
           height: 72,
           paddingTop: 10,
           paddingBottom: 12,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.card,
           borderTopWidth: 0,
           shadowColor: '#0F1216',
-          shadowOpacity: 0.06,
+          shadowOpacity: dark ? 0.25 : 0.06,
           shadowRadius: 16,
           shadowOffset: { width: 0, height: -8 },
           elevation: 12,
         },
         // Reference: active tab is red on Settings screen
         tabBarActiveTintColor: '#E04E4E',
-        tabBarInactiveTintColor: '#6B6F75',
+        tabBarInactiveTintColor: dark ? '#9AA0AA' : '#6B6F75',
       }}
     >
       <Tabs.Screen

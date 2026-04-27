@@ -74,9 +74,9 @@ export function SignInScreen({ navigation, route }: Props) {
         >
           <Pressable
             onPress={() => navigation.goBack()}
-            className="h-10 w-10 rounded-full bg-[#F3F4F6] items-center justify-center active:opacity-70 mt-3"
+            className="h-10 w-10 rounded-full bg-elevated items-center justify-center active:opacity-70 mt-3"
           >
-            <AppIcon name="chevron-back" size={20} color="#1A1C20" />
+            <AppIcon name="chevron-back" size={20} color="#6B6F75" />
           </Pressable>
 
           {/* Logo */}
@@ -90,10 +90,10 @@ export function SignInScreen({ navigation, route }: Props) {
           </View>
 
           {/* Heading */}
-          <Text className="text-center mt-6 text-3xl font-extrabold" style={{ color: '#1A1C20' }}>
+          <Text className="text-center mt-6 text-3xl font-extrabold text-text">
             {isSignUp ? t('auth.createAccountTitle') : t('auth.welcomeBackTitle')}
           </Text>
-          <Text className="text-center mt-2 text-base" style={{ color: '#8B8F95' }}>
+          <Text className="text-center mt-2 text-base text-muted">
             {isSignUp ? t('auth.subtitleSignup') : t('auth.subtitleSignin')}
           </Text>
 
@@ -101,19 +101,18 @@ export function SignInScreen({ navigation, route }: Props) {
           <View className="mt-10 gap-5">
             {isSignUp && (
               <View>
-                <Text className="text-sm font-bold mb-2" style={{ color: '#1A1C20' }}>{t('auth.fullName')}</Text>
+                <Text className="text-sm font-bold mb-2 text-text">{t('auth.fullName')}</Text>
                 <View
-                  className="flex-row items-center rounded-2xl border border-[#E9ECEF] px-4"
-                  style={{ height: 52, backgroundColor: '#FAFAFA' }}
+                  className="flex-row items-center rounded-2xl border border-elevated bg-card px-4"
+                  style={{ height: 52 }}
                 >
                   <AppIcon name="person-outline" size={18} color="#A9ADB2" />
                   <TextInput
                     value={name}
                     onChangeText={setName}
                     placeholder={t('auth.namePlaceholder')}
-                    placeholderTextColor="#A9ADB2"
-                    className="flex-1 ml-3 text-base"
-                    style={{ color: '#1A1C20' }}
+                    placeholderTextColor="#8B919A"
+                    className="flex-1 ml-3 text-base text-text"
                     autoCapitalize="words"
                   />
                 </View>
@@ -121,19 +120,18 @@ export function SignInScreen({ navigation, route }: Props) {
             )}
 
             <View>
-              <Text className="text-sm font-bold mb-2" style={{ color: '#1A1C20' }}>{t('auth.emailAddress')}</Text>
+              <Text className="text-sm font-bold mb-2 text-text">{t('auth.emailAddress')}</Text>
               <View
-                className="flex-row items-center rounded-2xl border border-[#E9ECEF] px-4"
-                style={{ height: 52, backgroundColor: '#FAFAFA' }}
+                className="flex-row items-center rounded-2xl border border-elevated bg-card px-4"
+                style={{ height: 52 }}
               >
                 <AppIcon name="mail-outline" size={18} color="#A9ADB2" />
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
                   placeholder={t('auth.emailPlaceholder')}
-                  placeholderTextColor="#A9ADB2"
-                  className="flex-1 ml-3 text-base"
-                  style={{ color: '#1A1C20' }}
+                  placeholderTextColor="#8B919A"
+                  className="flex-1 ml-3 text-base text-text"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -142,20 +140,19 @@ export function SignInScreen({ navigation, route }: Props) {
             </View>
 
             <View>
-              <Text className="text-sm font-bold mb-2" style={{ color: '#1A1C20' }}>{t('auth.password')}</Text>
+              <Text className="text-sm font-bold mb-2 text-text">{t('auth.password')}</Text>
               <View
-                className="flex-row items-center rounded-2xl border border-[#E9ECEF] px-4"
-                style={{ height: 52, backgroundColor: '#FAFAFA' }}
+                className="flex-row items-center rounded-2xl border border-elevated bg-card px-4"
+                style={{ height: 52 }}
               >
                 <AppIcon name="lock-closed-outline" size={18} color="#A9ADB2" />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
                   placeholder={t('auth.passwordPlaceholder')}
-                  placeholderTextColor="#A9ADB2"
+                  placeholderTextColor="#8B919A"
                   secureTextEntry={!showPassword}
-                  className="flex-1 ml-3 text-base"
-                  style={{ color: '#1A1C20' }}
+                  className="flex-1 ml-3 text-base text-text"
                   autoCapitalize="none"
                 />
                 <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>

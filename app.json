@@ -38,12 +38,18 @@
           "icon": "./assets/icon.png",
           "color": "#ffffff",
           "defaultChannel": "default",
-          "androidMode": "default"
+          "androidMode": "default",
+          "sounds": [
+            "./assets/notification-sounds/reminder-glass.wav",
+            "./assets/notification-sounds/reminder-hero.wav",
+            "./assets/notification-sounds/reminder-submarine.wav"
+          ]
         }
       ],
       "expo-localization",
       "@react-native-community/datetimepicker",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ],
     "extra": {
       "eas": {

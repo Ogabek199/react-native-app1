@@ -5,6 +5,7 @@
     "save": "Saqlash",
     "search": "Izlash",
     "open": "Ochish",
+    "ok": "OK",
     "cancel": "Bekor",
     "delete": "O‘chirish",
     "pleaseWait": "Kuting...",
@@ -70,6 +71,16 @@
     "deleteAllConfirmBody": "Ishonchingiz komilmi?",
     "language": "Til",
     "dailyRemindersInfo": "Har kuni qayd yozishni eslatib turuvchi bildirishnomalar.",
+    "reminderMessageHint": "Matn yozish majburiy emas. Bo‘sh qoldirilsa standart notification matni yuboriladi.",
+    "reminderMessageLabel": "Eslatma matni",
+    "reminderMessagePlaceholder": "Masalan: Bugungi rejangizni yozing",
+    "reminderUsesDefaultText": "Standart notification matni ishlatiladi",
+    "notificationSoundLabel": "Rington",
+    "chooseNotificationSound": "Rington tanlash",
+    "soundDefault": "Qurilma standarti",
+    "soundGlass": "Glass",
+    "soundHero": "Hero",
+    "soundSubmarine": "Submarine",
     "remindersLabel": "Eslatmalar",
     "pickTime": "Vaqtni tanlash",
     "addReminder": "Eslatma qo'shish",
@@ -90,7 +101,10 @@
     "streakDays": "{{count}} kun ketma-ket",
     "syncStatusTitle": "Sync holati",
     "syncStatusSubtitle": "Oxirgi sync: {{minutes}} daqiqa oldin",
+    "syncSignInRequired": "Sync uchun avval akkauntga kiring",
     "backupNow": "Backup qilish",
+    "backupSuccessTitle": "Backup tayyor",
+    "backupSuccessBody": "Qaydlaringiz bulutga muvaffaqiyatli saqlandi.",
     "backupFailed": "Backup bo‘lmadi. Qayta urinib ko‘ring.",
     "notSyncedYet": "Hali sync qilinmagan",
     "syncing": "Sync qilinyapti...",
@@ -99,6 +113,7 @@
     "signOutTitle": "Chiqish",
     "signOutBody": "Haqiqatan ham chiqmoqchimisiz?",
     "signOutCta": "Chiqish",
+    "themeSystem": "Tizim",
     "themeLight": "Yorug‘",
     "themeDark": "Tungi"
   },
@@ -224,4 +239,3 @@
   },
   "languages": { "uz": "O‘zbek", "ru": "Rus", "en": "Ingliz" }
 }
-

@@ -2,3 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-page: 251 250 248;
+  --color-card: 255 255 255;
+  --color-elevated: 241 237 235;
+
+  --color-text: 17 18 23;
+  --color-text2: 107 111 117;
+  --color-muted: 169 173 178;
+
+  --color-accent: 245 188 164;
+  --color-accent2: 166 212 192;
+
+  --color-success: 76 175 80;
+  --color-warning: 245 179 1;
+  --color-danger: 224 78 78;
+
+  /* Base for overlays; alpha is applied by Tailwind (e.g. bg-overlay/40). */
+  --color-overlay: 9 10 11;
+}
+
+.dark {
+  --color-page: 11 12 15;
+  --color-card: 20 22 27;
+  --color-elevated: 30 34 42;
+
+  --color-text: 244 245 247;
+  --color-text2: 193 197 204;
+  --color-muted: 139 145 154;
+
+  /* Keep brand colors consistent across themes. */
+  --color-accent: 245 188 164;
+  --color-accent2: 166 212 192;
+
+  --color-success: 76 175 80;
+  --color-warning: 245 179 1;
+  --color-danger: 224 78 78;
+
+  --color-overlay: 0 0 0;
+}
+

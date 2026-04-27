@@ -11,6 +11,7 @@ import type { Attachment, JournalEntry } from '../features/journal/repo/types';
 import { formatDate } from '../shared/lib/date';
 import { Screen } from '../shared/ui/Screen';
 import { AppIcon } from '../shared/ui/AppIcon';
+import { ConfirmDialog } from '../shared/ui/ConfirmDialog';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EntryDetail'>;
 
@@ -32,6 +33,7 @@ export function EntryDetailScreen({ navigation, route }: Props) {
   const [entry, setEntry] = React.useState<JournalEntry | null>(null);
   const [attachments, setAttachments] = React.useState<Attachment[]>([]);
   const [playingId, setPlayingId] = React.useState<string | null>(null);
+  const [deleteVisible, setDeleteVisible] = React.useState(false);
   const soundRef = React.useRef<Audio.Sound | null>(null);
 
   const load = React.useCallback(() => {
@@ -106,17 +108,7 @@ export function EntryDetailScreen({ navigation, route }: Props) {
   };
 
   const onDelete = () => {
-    Alert.alert(t('entryDetail.deleteTitle'), t('entryDetail.deleteBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: () => {
-          journalRepo.deleteEntry(entry.id);
-          navigation.popToTop();
-        },
-      },
-    ]);
+    setDeleteVisible(true);
   };
 
   return (
@@ -127,7 +119,7 @@ export function EntryDetailScreen({ navigation, route }: Props) {
             <Image source={{ uri: heroImage }} style={{ width: '100%', height: 220 }} resizeMode="cover" />
           </View>
         ) : (
-          <View className="rounded-3xl bg-[#FCE7E7] mb-5 items-center justify-center" style={{ height: 160 }}>
+          <View className="rounded-3xl bg-elevated mb-5 items-center justify-center" style={{ height: 160 }}>
             <AppIcon name="document-text-outline" size={48} color="#E04E4E" />
           </View>
         )}
@@ -151,7 +143,7 @@ export function EntryDetailScreen({ navigation, route }: Props) {
         {tags.length > 0 ? (
           <View className="flex-row flex-wrap gap-2 mt-4">
             {tags.map((tag) => (
-              <View key={tag} className="rounded-full bg-[#F3F4F6] px-3 py-1.5">
+              <View key={tag} className="rounded-full bg-elevated px-3 py-1.5">
                 <Text className="text-text2 text-xs font-semibold">{tag}</Text>
               </View>
             ))}
@@ -191,7 +183,7 @@ export function EntryDetailScreen({ navigation, route }: Props) {
                   <Pressable
                     key={aud.id}
                     onPress={() => playAudio(aud)}
-                    className="flex-row items-center gap-3 rounded-2xl bg-[#F3F4F6] px-4 py-3 active:opacity-80"
+                    className="flex-row items-center gap-3 rounded-2xl bg-elevated px-4 py-3 active:opacity-80"
                   >
                     <View className="h-10 w-10 rounded-full bg-[#E04E4E] items-center justify-center">
                       <AppIcon
@@ -216,8 +208,8 @@ export function EntryDetailScreen({ navigation, route }: Props) {
       </ScrollView>
 
       <View
-        className="absolute bottom-0 left-0 right-0 flex-row items-center pb-6 pt-3 bg-page"
-        style={{ borderTopWidth: 1, borderTopColor: '#E9ECEF', paddingHorizontal: 4 }}
+        className="absolute bottom-0 left-0 right-0 flex-row items-center pb-6 pt-3 bg-page border-t border-elevated"
+        style={{ paddingHorizontal: 4 }}
       >
         <Pressable
           onPress={() => navigation.navigate('EntryEditor', { entryId: entry.id })}
@@ -228,17 +220,31 @@ export function EntryDetailScreen({ navigation, route }: Props) {
         </Pressable>
         <Pressable
           onPress={onShare}
-          className="ml-2 h-12 w-12 rounded-2xl bg-[#F3F4F6] items-center justify-center active:opacity-80"
+          className="ml-2 h-12 w-12 rounded-2xl bg-elevated items-center justify-center active:opacity-80"
         >
-          <AppIcon name="share-outline" size={20} color="#6B6F75" />
+          <AppIcon name="share-outline" size={20} color="#A9ADB2" />
         </Pressable>
         <Pressable
           onPress={onDelete}
-          className="ml-2 h-12 w-12 rounded-2xl bg-[#F3F4F6] items-center justify-center active:opacity-80"
+          className="ml-2 h-12 w-12 rounded-2xl bg-elevated items-center justify-center active:opacity-80"
         >
           <AppIcon name="trash-outline" size={20} color="#E04E4E" />
         </Pressable>
       </View>
+
+      <ConfirmDialog
+        visible={deleteVisible}
+        onClose={() => setDeleteVisible(false)}
+        title={t('entryDetail.deleteTitle')}
+        description={t('entryDetail.deleteBody')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        onConfirm={async () => {
+          journalRepo.deleteEntry(entry.id);
+          navigation.popToTop();
+        }}
+      />
     </Screen>
   );
 }

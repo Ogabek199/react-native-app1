@@ -1,26 +1,27 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: ['./App.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
       colors: {
-        page: '#FBFAF8',
-        card: '#FFFFFF',
-        elevated: '#F1EDEB',
+        page: 'rgb(var(--color-page) / <alpha-value>)',
+        card: 'rgb(var(--color-card) / <alpha-value>)',
+        elevated: 'rgb(var(--color-elevated) / <alpha-value>)',
 
-        text: '#111217',
-        text2: '#6B6F75',
-        muted: '#A9ADB2',
+        text: 'rgb(var(--color-text) / <alpha-value>)',
+        text2: 'rgb(var(--color-text2) / <alpha-value>)',
+        muted: 'rgb(var(--color-muted) / <alpha-value>)',
 
-        accent: '#F5BCA4',
-        accent2: '#A6D4C0',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        accent2: 'rgb(var(--color-accent2) / <alpha-value>)',
 
-        success: '#4CAF50',
-        warning: '#F5B301',
-        danger: '#E04E4E',
+        success: 'rgb(var(--color-success) / <alpha-value>)',
+        warning: 'rgb(var(--color-warning) / <alpha-value>)',
+        danger: 'rgb(var(--color-danger) / <alpha-value>)',
 
-        overlay: 'rgba(9,10,11,0.48)',
+        overlay: 'rgb(var(--color-overlay) / <alpha-value>)',
       },
     },
   },

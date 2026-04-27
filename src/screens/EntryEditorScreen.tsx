@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as React from 'react';
-import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Audio } from 'expo-av';
 import * as Location from 'expo-location';
@@ -11,6 +11,8 @@ import { initDb } from '../features/journal/db/client';
 import { journalRepo } from '../features/journal/repo/journalRepo';
 import { Screen } from '../shared/ui/Screen';
 import { AppIcon } from '../shared/ui/AppIcon';
+import { AppDialog } from '../shared/ui/AppDialog';
+import { AppSheet } from '../shared/ui/AppSheet';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EntryEditor'>;
 
@@ -193,10 +195,10 @@ export function EntryEditorScreen({ navigation, route }: Props) {
     <View className="flex-1 bg-page">
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         {/* Top bar */}
-        <View className="px-5 pt-12 pb-3 mb-3" style={{ borderBottomWidth: 1, borderBottomColor: '#E9ECEF' }}>
+        <View className="px-5 pt-12 pb-3 mb-3 border-b border-elevated">
           <View className="flex-row items-center justify-between">
-            <Pressable onPress={() => navigation.goBack()} className="h-10 w-10 rounded-full bg-[#F3F4F6] items-center justify-center active:opacity-70">
-              <AppIcon name="arrow-back" size={20} color="#111217" />
+            <Pressable onPress={() => navigation.goBack()} className="h-10 w-10 rounded-full bg-elevated items-center justify-center active:opacity-70">
+              <AppIcon name="arrow-back" size={20} color="#A9ADB2" />
             </Pressable>
             <Pressable onPress={onSave} className="rounded-full bg-[#E04E4E] px-5 py-2 active:opacity-85">
               <Text className="text-white text-sm font-extrabold">Save</Text>
@@ -223,9 +225,9 @@ export function EntryEditorScreen({ navigation, route }: Props) {
                     { flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 20 },
                     selected
                       ? { backgroundColor: '#E04E4E' }
-                      : { backgroundColor: '#F3F4F6' },
+                      : { backgroundColor: undefined },
                   ]}
-                  className="active:opacity-85"
+                  className={['active:opacity-85', selected ? '' : 'bg-elevated'].join(' ')}
                 >
                   <View
                     style={[
@@ -240,7 +242,7 @@ export function EntryEditorScreen({ navigation, route }: Props) {
                   <Text
                     style={[
                       { marginTop: 6, fontSize: 11, fontWeight: '700' },
-                      selected ? { color: '#FFFFFF' } : { color: '#8B8F95' },
+                      selected ? { color: '#FFFFFF' } : { color: '#8B919A' },
                     ]}
                   >
                     {m.toUpperCase()}
@@ -251,7 +253,7 @@ export function EntryEditorScreen({ navigation, route }: Props) {
           </View>
 
           {/* Divider */}
-          <View className="h-[1px] bg-[#E9ECEF] mt-5 mb-4" />
+          <View className="h-[1px] bg-elevated mt-5 mb-4" />
 
           {/* Tags */}
           <View className="flex-row flex-wrap items-center gap-2">
@@ -261,7 +263,7 @@ export function EntryEditorScreen({ navigation, route }: Props) {
               </Pressable>
             ))}
             <Pressable onPress={() => setTagOpen(true)} className="flex-row items-center gap-1 active:opacity-70">
-              <AppIcon name="add" size={16} color="#8B8F95" />
+              <AppIcon name="add" size={16} color="#A9ADB2" />
               <Text className="text-muted text-sm font-semibold">Add Tag</Text>
             </Pressable>
           </View>
@@ -271,7 +273,7 @@ export function EntryEditorScreen({ navigation, route }: Props) {
             value={title}
             onChangeText={setTitle}
             placeholder="Untitled Reflection"
-            placeholderTextColor="#C8CCD2"
+            placeholderTextColor="#8B919A"
             className="text-text text-2xl font-extrabold mt-5"
             style={{ lineHeight: 32 }}
           />
@@ -281,7 +283,7 @@ export function EntryEditorScreen({ navigation, route }: Props) {
 
           {/* Recording indicator */}
           {isRecording ? (
-            <View className="flex-row items-center gap-3 rounded-2xl bg-[#FEE] border border-[#F3D6D6] px-4 py-3 mt-4">
+            <View className="flex-row items-center gap-3 rounded-2xl bg-elevated border border-elevated px-4 py-3 mt-4">
               <View className="h-3 w-3 rounded-full bg-[#E04E4E]" />
               <Text className="text-[#E04E4E] font-bold text-sm">
                 Recording {Math.floor(recordingDuration / 60)}:{String(recordingDuration % 60).padStart(2, '0')}
@@ -297,7 +299,7 @@ export function EntryEditorScreen({ navigation, route }: Props) {
             value={body}
             onChangeText={setBody}
             placeholder="What's on your mind? Take a moment to reflect..."
-            placeholderTextColor="#C8CCD2"
+            placeholderTextColor="#8B919A"
             multiline
             textAlignVertical="top"
             className="text-text text-base mt-4"
@@ -315,7 +317,7 @@ export function EntryEditorScreen({ navigation, route }: Props) {
                 <Pressable
                   key={p}
                   onPress={() => setBody((prev) => (prev ? `${prev}\n\n${p}` : p))}
-                  className="rounded-full border border-[#E9ECEF] bg-white px-4 py-2.5 active:opacity-70"
+                  className="rounded-full border border-elevated bg-card px-4 py-2.5 active:opacity-70"
                 >
                   <Text className="text-text text-xs font-semibold">{p}</Text>
                 </Pressable>
@@ -326,25 +328,24 @@ export function EntryEditorScreen({ navigation, route }: Props) {
 
         {/* Bottom toolbar */}
         <View
-          className="px-5 pb-6 pt-3 bg-page"
-          style={{ borderTopWidth: 1, borderTopColor: '#F0F0F0' }}
+          className="px-5 pb-6 pt-3 bg-page border-t border-elevated"
         >
           <View className="flex-row items-center">
             <View className="flex-row items-center gap-5">
               <Pressable onPress={addFromGallery} hitSlop={8} className="active:opacity-70">
-                <AppIcon name="image-outline" size={22} color="#6B6F75" />
+                <AppIcon name="image-outline" size={22} color="#A9ADB2" />
               </Pressable>
               <Pressable onPress={takePhoto} hitSlop={8} className="active:opacity-70">
-                <AppIcon name="camera-outline" size={22} color="#6B6F75" />
+                <AppIcon name="camera-outline" size={22} color="#A9ADB2" />
               </Pressable>
               <Pressable onPress={isRecording ? stopRecording : startRecording} hitSlop={8} className="active:opacity-70">
-                <AppIcon name={isRecording ? 'stop-circle' : 'mic-outline'} size={22} color={isRecording ? '#E04E4E' : '#6B6F75'} />
+                <AppIcon name={isRecording ? 'stop-circle' : 'mic-outline'} size={22} color={isRecording ? '#E04E4E' : '#A9ADB2'} />
               </Pressable>
               <Pressable onPress={addLocation} hitSlop={8} className="active:opacity-70">
-                <AppIcon name="location-outline" size={22} color="#6B6F75" />
+                <AppIcon name="location-outline" size={22} color="#A9ADB2" />
               </Pressable>
               <Pressable onPress={() => setStickersOpen(true)} hitSlop={8} className="active:opacity-70">
-                <AppIcon name="happy-outline" size={22} color="#6B6F75" />
+                <AppIcon name="happy-outline" size={22} color="#A9ADB2" />
               </Pressable>
             </View>
 
@@ -355,9 +356,9 @@ export function EntryEditorScreen({ navigation, route }: Props) {
               </View>
               <Pressable
                 onPress={onSave}
-                className="rounded-2xl bg-[#1A1C20] px-5 py-2.5 active:opacity-85"
+                className="rounded-2xl bg-card border border-elevated px-5 py-2.5 active:opacity-85"
               >
-                <Text className="text-white text-sm font-extrabold">Draft</Text>
+                <Text className="text-text text-sm font-extrabold">Draft</Text>
               </Pressable>
             </View>
           </View>
@@ -366,34 +367,36 @@ export function EntryEditorScreen({ navigation, route }: Props) {
 
       <StickerModal open={stickersOpen} onClose={() => setStickersOpen(false)} onPick={(e) => { setBody((p) => (p ? `${p} ${e}` : e)); setStickersOpen(false); }} />
 
-      <Modal transparent visible={tagOpen} animationType="fade" onRequestClose={() => setTagOpen(false)}>
-        <Pressable onPress={() => setTagOpen(false)} className="flex-1 bg-black/40 items-center justify-center px-6">
-          <Pressable onPress={() => {}} className="w-full rounded-3xl bg-page px-5 py-5">
-            <Text className="text-text font-extrabold text-base mb-3">Add Tag</Text>
-            <View className="rounded-2xl bg-[#F3F4F6] px-4 py-3">
-              <TextInput
-                value={tagInput}
-                onChangeText={setTagInput}
-                placeholder="e.g. gratitude"
-                placeholderTextColor="#8B8F95"
-                className="text-text"
-                autoCapitalize="none"
-                onSubmitEditing={onAddTag}
-              />
-            </View>
-            <View className="mt-3 flex-row flex-wrap gap-2">
-              {['daily', 'thoughts', 'work', 'family', 'travel', 'nature', 'grateful'].map((t) => (
-                <Pressable key={t} onPress={() => { if (!tags.includes(t)) setTags((p) => [...p, t]); setTagOpen(false); }} className="px-3 py-2 rounded-full bg-[#F3F4F6] active:opacity-70">
-                  <Text className="text-text2 text-xs font-semibold">#{t}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <Pressable onPress={onAddTag} className="mt-4 rounded-2xl bg-[#E04E4E] py-3 items-center active:opacity-85">
-              <Text className="text-white font-extrabold">Add</Text>
-            </Pressable>
+      <AppDialog
+        visible={tagOpen}
+        onClose={() => setTagOpen(false)}
+        title="Add Tag"
+        iconName="pricetag-outline"
+        footer={(
+          <Pressable onPress={onAddTag} className="rounded-2xl bg-danger py-3 items-center active:opacity-85">
+            <Text className="text-white font-extrabold">Add</Text>
           </Pressable>
-        </Pressable>
-      </Modal>
+        )}
+      >
+        <View className="rounded-2xl bg-elevated px-4 py-3">
+          <TextInput
+            value={tagInput}
+            onChangeText={setTagInput}
+            placeholder="e.g. gratitude"
+            placeholderTextColor="#8B919A"
+            className="text-text"
+            autoCapitalize="none"
+            onSubmitEditing={onAddTag}
+          />
+        </View>
+        <View className="mt-3 flex-row flex-wrap gap-2">
+          {['daily', 'thoughts', 'work', 'family', 'travel', 'nature', 'grateful'].map((t) => (
+            <Pressable key={t} onPress={() => { if (!tags.includes(t)) setTags((p) => [...p, t]); setTagOpen(false); }} className="px-3 py-2 rounded-full bg-elevated active:opacity-70">
+              <Text className="text-text2 text-xs font-semibold">#{t}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </AppDialog>
     </View>
   );
 }
@@ -408,25 +411,14 @@ function StickerModal({ open, onClose, onPick }: { open: boolean; onClose: () =>
   ], []);
 
   return (
-    <Modal transparent visible={open} animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/40 justify-end">
-        <Pressable className="flex-1" onPress={onClose} />
-        <View className="bg-page rounded-t-3xl px-5 pt-4 pb-8">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-text font-extrabold text-base">Stickers</Text>
-            <Pressable onPress={onClose} className="h-10 w-10 items-center justify-center">
-              <AppIcon name="close" size={22} color="#111217" />
-            </Pressable>
-          </View>
-          <ScrollView contentContainerClassName="flex-row flex-wrap gap-3 pb-6">
-            {emojis.map((e) => (
-              <Pressable key={e} onPress={() => onPick(e)} className="h-12 w-12 rounded-2xl bg-[#F3F4F6] items-center justify-center active:opacity-70">
-                <Text className="text-2xl">{e}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
+    <AppSheet visible={open} onClose={onClose} title="Stickers" eyebrow="Editor">
+      <View className="flex-row flex-wrap gap-3 pb-6">
+        {emojis.map((e) => (
+          <Pressable key={e} onPress={() => onPick(e)} className="h-12 w-12 rounded-2xl bg-elevated items-center justify-center active:opacity-70">
+            <Text className="text-2xl">{e}</Text>
+          </Pressable>
+        ))}
       </View>
-    </Modal>
+    </AppSheet>
   );
 }

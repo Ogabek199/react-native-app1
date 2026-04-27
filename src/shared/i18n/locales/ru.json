@@ -5,6 +5,7 @@
     "save": "Сохранить",
     "search": "Поиск",
     "open": "Открыть",
+    "ok": "ОК",
     "cancel": "Отмена",
     "delete": "Удалить",
     "pleaseWait": "Подождите...",
@@ -70,6 +71,16 @@
     "deleteAllConfirmBody": "Вы уверены?",
     "language": "Язык",
     "dailyRemindersInfo": "Напоминания для ежедневных записей.",
+    "reminderMessageHint": "Текст необязателен. Если оставить поле пустым, придёт стандартный текст уведомления.",
+    "reminderMessageLabel": "Текст напоминания",
+    "reminderMessagePlaceholder": "Например: Запишите план на сегодня",
+    "reminderUsesDefaultText": "Будет использован стандартный текст уведомления",
+    "notificationSoundLabel": "Рингтон",
+    "chooseNotificationSound": "Выбрать рингтон",
+    "soundDefault": "Системный",
+    "soundGlass": "Glass",
+    "soundHero": "Hero",
+    "soundSubmarine": "Submarine",
     "remindersLabel": "Напоминания",
     "pickTime": "Выбрать время",
     "addReminder": "Добавить напоминание",
@@ -90,7 +101,10 @@
     "streakDays": "Серия: {{count}} дней",
     "syncStatusTitle": "Статус синхронизации",
     "syncStatusSubtitle": "Синхронизировано {{minutes}} мин назад",
+    "syncSignInRequired": "Войдите в аккаунт, чтобы использовать синхронизацию",
     "backupNow": "Сделать бэкап",
+    "backupSuccessTitle": "Бэкап создан",
+    "backupSuccessBody": "Данные дневника успешно сохранены в облаке.",
     "backupFailed": "Не удалось сделать бэкап. Попробуйте ещё раз.",
     "notSyncedYet": "Ещё не синхронизировано",
     "syncing": "Синхронизация...",
@@ -99,6 +113,7 @@
     "signOutTitle": "Выйти",
     "signOutBody": "Вы уверены, что хотите выйти?",
     "signOutCta": "Выйти",
+    "themeSystem": "Системная",
     "themeLight": "Светлая",
     "themeDark": "Тёмная"
   },
@@ -224,4 +239,3 @@
   },
   "languages": { "uz": "Узбекский", "ru": "Русский", "en": "Английский" }
 }
-

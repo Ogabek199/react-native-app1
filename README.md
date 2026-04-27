@@ -44,3 +44,9 @@ npx eas build -p android --profile preview
 npx eas build -p ios --profile preview
 ```
 
+Android release apk command
+```bash
+ npm install -g eas-cli
+ eas login
+eas build:configure
+```

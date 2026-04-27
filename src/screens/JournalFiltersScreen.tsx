@@ -26,7 +26,7 @@ function MoodCircle({ mood, selected, onPress }: { mood: JournalMood; selected: 
       onPress={onPress}
       className={[
         'items-center justify-center h-14 w-14 rounded-2xl border',
-        selected ? 'bg-[#FCE7E7] border-danger' : 'bg-page border-[#E9ECEF]',
+        selected ? 'bg-elevated border-danger' : 'bg-page border-elevated',
         'active:opacity-80',
       ].join(' ')}
     >
@@ -71,18 +71,18 @@ export function JournalFiltersScreen() {
         <View className="gap-4">
           <View className="flex-row items-center gap-3">
             <Pressable onPress={() => navigation.goBack()} className="h-10 w-10 items-center justify-center">
-              <AppIcon name="close" size={22} color="#111217" />
+              <AppIcon name="close" size={22} color="#A9ADB2" />
             </Pressable>
             <Text className="text-text font-extrabold text-base">{t('filters.title')}</Text>
           </View>
 
-          <View className="rounded-2xl bg-card px-4 py-3 border border-[#E9ECEF] flex-row items-center gap-3">
-            <AppIcon name="search-outline" size={18} color="#8B8F95" />
+          <View className="rounded-2xl bg-card px-4 py-3 border border-elevated flex-row items-center gap-3">
+            <AppIcon name="search-outline" size={18} color="#A9ADB2" />
             <TextInput
               value={filters.query}
               onChangeText={setQuery}
               placeholder={t('filters.searchPlaceholder')}
-              placeholderTextColor="#8B8F95"
+              placeholderTextColor="#8B919A"
               className="flex-1 text-text"
             />
           </View>
@@ -96,10 +96,10 @@ export function JournalFiltersScreen() {
             </View>
             <Pressable
               onPress={() => navigation.navigate('JournalCalendar')}
-              className="mt-3 rounded-2xl border border-[#E9ECEF] bg-page px-4 py-4 flex-row items-center justify-between active:opacity-80"
+              className="mt-3 rounded-2xl border border-elevated bg-page px-4 py-4 flex-row items-center justify-between active:opacity-80"
             >
               <View className="flex-row items-center gap-3">
-                <View className="h-10 w-10 rounded-2xl bg-[#FCE7E7] items-center justify-center">
+                <View className="h-10 w-10 rounded-2xl bg-elevated items-center justify-center">
                   <AppIcon name="calendar-outline" size={18} color="#E04E4E" />
                 </View>
                 <View>
@@ -135,7 +135,7 @@ export function JournalFiltersScreen() {
                   onPress={() => toggleTag(t)}
                   className={[
                     'px-3 py-2 rounded-full border',
-                    filters.tags.includes(t) ? 'bg-[#FCE7E7] border-[#F3D6D6]' : 'bg-page border-[#E9ECEF]',
+                    filters.tags.includes(t) ? 'bg-elevated border-elevated' : 'bg-page border-elevated',
                     'active:opacity-80',
                   ].join(' ')}
                 >
@@ -147,17 +147,17 @@ export function JournalFiltersScreen() {
                   addTag(tagText);
                   setTagText('');
                 }}
-                className="px-3 py-2 rounded-full border border-[#E9ECEF] bg-page active:opacity-80"
+                className="px-3 py-2 rounded-full border border-elevated bg-page active:opacity-80"
               >
                 <Text className="text-text2 text-xs font-semibold">{t('filters.addTag')}</Text>
               </Pressable>
             </View>
-            <View className="mt-3 rounded-2xl bg-page border border-[#E9ECEF] px-4 py-3">
+            <View className="mt-3 rounded-2xl bg-page border border-elevated px-4 py-3">
               <TextInput
                 value={tagText}
                 onChangeText={setTagText}
                 placeholder={t('filters.tagInputPlaceholder')}
-                placeholderTextColor="#8B8F95"
+                placeholderTextColor="#8B919A"
                 className="text-text"
               />
             </View>
@@ -168,7 +168,7 @@ export function JournalFiltersScreen() {
             <View className="mt-3 gap-3">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-3">
-                  <AppIcon name="image-outline" size={18} color="#6B6F75" />
+                  <AppIcon name="image-outline" size={18} color="#A9ADB2" />
                   <View>
                     <Text className="text-text font-extrabold">{t('filters.hasImages')}</Text>
                     <Text className="text-muted text-xs mt-1">{t('filters.hasImagesSub')}</Text>
@@ -184,7 +184,7 @@ export function JournalFiltersScreen() {
 
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-3">
-                  <AppIcon name="mic-outline" size={18} color="#6B6F75" />
+                  <AppIcon name="mic-outline" size={18} color="#A9ADB2" />
                   <View>
                     <Text className="text-text font-extrabold">{t('filters.hasAudio')}</Text>
                     <Text className="text-muted text-xs mt-1">{t('filters.hasAudioSub')}</Text>
@@ -204,7 +204,7 @@ export function JournalFiltersScreen() {
         <View className="mt-auto flex-row gap-3 items-center mb-6">
           <Pressable
             onPress={reset}
-            className="flex-1 rounded-2xl bg-page border border-[#E9ECEF] px-4 py-4 items-center active:opacity-85"
+            className="flex-1 rounded-2xl bg-page border border-elevated px-4 py-4 items-center active:opacity-85"
           >
             <Text className="text-text font-extrabold">{t('filters.reset')}</Text>
           </Pressable>

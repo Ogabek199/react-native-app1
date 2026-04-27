@@ -5,6 +5,7 @@
     "save": "Save",
     "search": "Search",
     "open": "Open",
+    "ok": "OK",
     "cancel": "Cancel",
     "delete": "Delete",
     "pleaseWait": "Please wait...",
@@ -70,6 +71,16 @@
     "deleteAllConfirmBody": "Are you sure?",
     "language": "Language",
     "dailyRemindersInfo": "Set reminders to write a reflection every day.",
+    "reminderMessageHint": "Message is optional. If left empty, the default notification text will be used.",
+    "reminderMessageLabel": "Reminder message",
+    "reminderMessagePlaceholder": "For example: Write down today’s plan",
+    "reminderUsesDefaultText": "Default notification text will be used",
+    "notificationSoundLabel": "Ringtone",
+    "chooseNotificationSound": "Choose ringtone",
+    "soundDefault": "Device default",
+    "soundGlass": "Glass",
+    "soundHero": "Hero",
+    "soundSubmarine": "Submarine",
     "remindersLabel": "Reminders",
     "pickTime": "Pick time",
     "addReminder": "Add Reminder",
@@ -90,7 +101,10 @@
     "streakDays": "{{count}} Days Streak",
     "syncStatusTitle": "Sync Status",
     "syncStatusSubtitle": "Last synced {{minutes}}m ago",
+    "syncSignInRequired": "Sign in to use sync",
     "backupNow": "Backup Now",
+    "backupSuccessTitle": "Backup complete",
+    "backupSuccessBody": "Your journal data has been saved to the cloud.",
     "backupFailed": "Backup failed. Please try again.",
     "notSyncedYet": "Not synced yet",
     "syncing": "Syncing...",
@@ -99,6 +113,7 @@
     "signOutTitle": "Sign Out",
     "signOutBody": "Are you sure you want to sign out?",
     "signOutCta": "Sign Out",
+    "themeSystem": "System",
     "themeLight": "Light",
     "themeDark": "Dark"
   },
@@ -224,4 +239,3 @@
   },
   "languages": { "uz": "Uzbek", "ru": "Russian", "en": "English" }
 }
-

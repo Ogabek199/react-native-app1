@@ -11,8 +11,6 @@ function rowToEntry(row: any): JournalEntry {
         ? 'Sad'
         : moodRaw === 'Neutral'
           ? 'Neutral'
-          : moodRaw === 'Loved'
-            ? 'Neutral'
           : 'Calm';
   return {
     id: String(row.id),

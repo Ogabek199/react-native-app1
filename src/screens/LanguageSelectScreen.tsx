@@ -26,7 +26,7 @@ export function LanguageSelectScreen() {
       <View className="gap-4">
         <View className="flex-row items-center justify-between">
           <Pressable onPress={() => navigation.goBack()} className="h-10 w-10 items-center justify-center">
-            <AppIcon name="chevron-back" size={22} color="#111217" />
+            <AppIcon name="chevron-back" size={22} color="#A9ADB2" />
           </Pressable>
           <Text className="text-text font-extrabold text-base">{t('settings.language')}</Text>
           <View className="h-10 w-10" />
@@ -46,7 +46,7 @@ export function LanguageSelectScreen() {
                   }}
                   className={[
                     'flex-row items-center justify-between rounded-2xl px-4 py-4 border',
-                    selected ? 'bg-[#FCE7E7] border-[#F3D6D6]' : 'bg-page border-[#E9ECEF]',
+                    selected ? 'bg-elevated border-elevated' : 'bg-page border-elevated',
                     'active:opacity-85',
                   ].join(' ')}
                 >

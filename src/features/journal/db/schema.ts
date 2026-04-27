@@ -1,7 +1,7 @@
 export const DB_NAME = 'journal.db';
 export const DB_VERSION = 1;
 
-export const schemaV1 = [
+const schemaV1 = [
   `CREATE TABLE IF NOT EXISTS entries (
     id TEXT PRIMARY KEY NOT NULL,
     title TEXT NOT NULL,
@@ -22,4 +22,5 @@ export const schemaV1 = [
   );`,
   `CREATE INDEX IF NOT EXISTS idx_attachments_entry_id ON attachments (entry_id);`,
 ];
+export default schemaV1
 

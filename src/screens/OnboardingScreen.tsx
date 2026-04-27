@@ -31,7 +31,7 @@ const FEATURES: { icon: string; color: string; title: string; desc: string }[] =
   },
 ];
 
-export function OnboardingScreen({ navigation }: Props) {
+function OnboardingScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const language = useSettingsStore((s) => s.language);
   const setLanguage = useSettingsStore((s) => s.setLanguage);
@@ -63,7 +63,7 @@ export function OnboardingScreen({ navigation }: Props) {
       >
         {/* Language */}
         <View className="w-full flex-row justify-end mb-2">
-          <View className="flex-row items-center rounded-full bg-[#F3F4F6] p-1">
+          <View className="flex-row items-center rounded-full bg-elevated p-1">
             {(['uz', 'ru', 'en'] as const).map((lng) => {
               const active = language === lng;
               return (
@@ -84,11 +84,11 @@ export function OnboardingScreen({ navigation }: Props) {
                       alignItems: 'center',
                       justifyContent: 'center',
                     },
-                    active && { backgroundColor: '#FFFFFF', elevation: 1 },
+                    active && { elevation: 1 },
                   ]}
-                  className="active:opacity-80"
+                  className={['active:opacity-80', active ? 'bg-card' : ''].join(' ')}
                 >
-                  <Text style={{ fontSize: 11, fontWeight: '800', color: active ? '#111217' : '#A9ADB2' }}>
+                  <Text className={active ? 'text-text' : 'text-muted'} style={{ fontSize: 11, fontWeight: '800' }}>
                     {lng.toUpperCase()}
                   </Text>
                 </Pressable>
@@ -108,12 +108,12 @@ export function OnboardingScreen({ navigation }: Props) {
         </View>
 
         {/* Heading */}
-        <Text className="text-center mt-6 text-3xl font-extrabold" style={{ color: '#1A1C20', lineHeight: 38 }}>
+        <Text className="text-center mt-6 text-3xl font-extrabold text-text" style={{ lineHeight: 38 }}>
           {t('onboarding.titleLine1')}{'\n'}
-          <Text style={{ color: '#E04E4E' }}>{t('onboarding.titleLine2')}</Text>
+          <Text className="text-danger">{t('onboarding.titleLine2')}</Text>
         </Text>
 
-        <Text className="text-center mt-3 text-base" style={{ color: '#8B8F95', lineHeight: 24 }}>
+        <Text className="text-center mt-3 text-base text-muted" style={{ lineHeight: 24 }}>
           {t('onboarding.subtitle')}
         </Text>
 
@@ -142,8 +142,8 @@ export function OnboardingScreen({ navigation }: Props) {
                 <AppIcon name={f.icon as any} size={20} color={f.color} />
               </View>
               <View className="flex-1">
-                <Text className="text-base font-extrabold" style={{ color: '#1A1C20' }}>{f.title}</Text>
-                <Text className="mt-1 text-sm" style={{ color: '#8B8F95', lineHeight: 20 }}>{f.desc}</Text>
+                <Text className="text-base font-extrabold text-text">{f.title}</Text>
+                <Text className="mt-1 text-sm text-muted" style={{ lineHeight: 20 }}>{f.desc}</Text>
               </View>
             </View>
           ))}
@@ -169,9 +169,9 @@ export function OnboardingScreen({ navigation }: Props) {
           </Pressable>
 
           <Pressable onPress={() => navigation.navigate('SignIn', { mode: 'signin' })}>
-            <Text className="text-center mt-4 text-sm" style={{ color: '#8B8F95' }}>
+            <Text className="text-center mt-4 text-sm text-muted">
               {t('onboarding.alreadyHaveAccount')}{' '}
-              <Text style={{ color: '#E04E4E', fontWeight: '700' }}>{t('onboarding.signIn')}</Text>
+              <Text className="text-danger" style={{ fontWeight: '700' }}>{t('onboarding.signIn')}</Text>
             </Text>
           </Pressable>
         </View>
@@ -179,3 +179,5 @@ export function OnboardingScreen({ navigation }: Props) {
     </View>
   );
 }
+
+export default OnboardingScreen

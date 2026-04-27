@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-import { DB_NAME, schemaV1 } from './schema';
+import schemaV1, { DB_NAME } from './schema';
 
 export const db = SQLite.openDatabaseSync(DB_NAME);
 
@@ -8,7 +8,7 @@ export function initDb() {
   db.execSync('PRAGMA foreign_keys = ON;');
   for (const stmt of schemaV1) db.execSync(stmt);
 
-  // Lightweight migration for older installs (before `mood` column existed).
+  // Lightweight migrat ion for older installs (before `mood` column existed).
   try {
     const cols = db.getAllSync(`PRAGMA table_info(entries);`) as any[];
     const hasMood = cols.some((c) => String(c.name) === 'mood');

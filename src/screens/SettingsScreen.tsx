@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Alert, Image, Modal, Platform, Pressable, ScrollView, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -13,8 +13,21 @@ import { Card } from '../shared/ui/Card';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { initDb } from '../features/journal/db/client';
 import { db } from '../features/journal/db/client';
+import { journalRepo } from '../features/journal/repo/journalRepo';
+import type { JournalEntry } from '../features/journal/repo/types';
+import { getCurrentStreak } from '../shared/lib/streak';
 import { AppIcon } from '../shared/ui/AppIcon';
 import { exportJournalPdf } from '../features/journal/export/exportPdf';
+import { AppDialog } from '../shared/ui/AppDialog';
+import { ConfirmDialog } from '../shared/ui/ConfirmDialog';
+import { TextField } from '../shared/ui/TextField';
+
+type BackupDialogState = {
+  title: string;
+  description: string;
+  tone: 'default' | 'danger';
+  iconName: React.ComponentProps<typeof AppIcon>['name'];
+};
 
 export function SettingsScreen() {
   const navigation = useNavigation<any>();
@@ -28,13 +41,24 @@ export function SettingsScreen() {
   const userName = useSettingsStore((s) => s.userName);
   const userEmail = useSettingsStore((s) => s.userEmail);
   const setUserProfile = useSettingsStore((s) => s.setUserProfile);
+  const isLoggedIn = useSettingsStore((s) => s.isLoggedIn);
   const lastSyncAt = useSettingsStore((s) => s.lastSyncAt);
   const syncBusy = useSettingsStore((s) => s.syncBusy);
   const backupNow = useSettingsStore((s) => s.backupNow);
+  const refreshSyncStatus = useSettingsStore((s) => s.refreshSyncStatus);
   const [passcodeLock, setPasscodeLock] = React.useState(false);
   const [editVisible, setEditVisible] = React.useState(false);
   const [editName, setEditName] = React.useState(userName);
   const [editEmail, setEditEmail] = React.useState(userEmail);
+  const [deleteAllVisible, setDeleteAllVisible] = React.useState(false);
+  const [signOutVisible, setSignOutVisible] = React.useState(false);
+  const [entries, setEntries] = React.useState<JournalEntry[]>([]);
+  const [backupDialog, setBackupDialog] = React.useState<BackupDialogState | null>(null);
+
+  const loadEntries = React.useCallback(() => {
+    initDb();
+    setEntries(journalRepo.listEntries());
+  }, []);
 
   React.useEffect(() => {
     // Ensure UI updates immediately when user changes language.
@@ -42,6 +66,22 @@ export function SettingsScreen() {
       void i18n.changeLanguage(language);
     }
   }, [language]);
+
+  React.useEffect(() => {
+    const unsub = navigation.addListener?.('focus', loadEntries);
+    if (typeof unsub === 'function') return unsub;
+    loadEntries();
+    return undefined;
+  }, [navigation, loadEntries]);
+
+  React.useEffect(() => {
+    const unsub = navigation.addListener?.('focus', refreshSyncStatus);
+    if (typeof unsub === 'function') return unsub;
+    void refreshSyncStatus();
+    return undefined;
+  }, [navigation, refreshSyncStatus]);
+
+  const currentStreak = React.useMemo(() => getCurrentStreak(entries), [entries]);
 
   const onToggle = React.useCallback(
     async (v: boolean) => {
@@ -109,12 +149,12 @@ export function SettingsScreen() {
           <View className="relative">
             <Pressable
               onPress={onPickProfileImage}
-              className="h-20 w-20 rounded-full bg-[#F7ECE7] items-center justify-center overflow-hidden active:opacity-90"
+              className="h-20 w-20 rounded-full bg-elevated items-center justify-center overflow-hidden active:opacity-90"
             >
               {profileImageUri ? (
                 <Image source={{ uri: profileImageUri }} style={{ width: 80, height: 80 }} />
               ) : (
-                <AppIcon name="person" size={34} color="#111217" />
+                <AppIcon name="person" size={34} color="#A9ADB2" />
               )}
             </Pressable>
             <View
@@ -128,7 +168,7 @@ export function SettingsScreen() {
           <View className="flex-1">
             <View className="flex-row items-center gap-2">
               <Text className="text-text text-2xl font-extrabold">{userName}</Text>
-              <View className="px-2 py-1 rounded-full bg-[#F3E9E6]">
+              <View className="px-2 py-1 rounded-full bg-elevated">
                 <Text className="text-muted text-[10px] font-extrabold">PRO</Text>
               </View>
             </View>
@@ -137,7 +177,7 @@ export function SettingsScreen() {
             <View className="flex-row items-center justify-between mt-2">
               <View className="flex-row items-center gap-2">
                 <AppIcon name="calendar-outline" size={16} color="#E04E4E" />
-                <Text className="text-text font-semibold">{t('settings.streakDays', { count: 124 })}</Text>
+                <Text className="text-text font-semibold">{t('settings.streakDays', { count: currentStreak })}</Text>
               </View>
               <Pressable
                 onPress={() => {
@@ -145,64 +185,58 @@ export function SettingsScreen() {
                   setEditEmail(userEmail);
                   setEditVisible(true);
                 }}
-                className="h-8 w-8 rounded-full bg-[#F3F4F6] items-center justify-center active:opacity-70"
+                className="h-8 w-8 rounded-full bg-elevated items-center justify-center active:opacity-70"
               >
-                <AppIcon name="create-outline" size={16} color="#6B6F75" />
+                <AppIcon name="create-outline" size={16} color="#A9ADB2" />
               </Pressable>
             </View>
           </View>
         </View>
 
-        <Modal visible={editVisible} transparent animationType="fade">
-          <Pressable
-            onPress={() => setEditVisible(false)}
-            className="flex-1 bg-black/40 justify-center px-6"
-          >
-            <Pressable onPress={() => {}} className="bg-card rounded-3xl p-6">
-              <Text className="text-text text-lg font-extrabold mb-4">{t('settings.editProfileTitle')}</Text>
-
-              <Text className="text-muted text-xs font-semibold mb-1">{t('settings.nameLabel')}</Text>
-              <TextInput
-                value={editName}
-                onChangeText={setEditName}
-                className="border border-[#E9ECEF] rounded-2xl px-4 py-3 text-text text-base mb-3"
-                placeholder={t('settings.namePlaceholder')}
-                placeholderTextColor="#A9ADB2"
-              />
-
-              <Text className="text-muted text-xs font-semibold mb-1">{t('settings.emailLabel')}</Text>
-              <TextInput
-                value={editEmail}
-                onChangeText={setEditEmail}
-                className="border border-[#E9ECEF] rounded-2xl px-4 py-3 text-text text-base mb-4"
-                placeholder={t('settings.emailPlaceholder')}
-                placeholderTextColor="#A9ADB2"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-
-              <View className="flex-row gap-3">
-                <Pressable
-                  onPress={() => setEditVisible(false)}
-                  className="flex-1 rounded-2xl bg-[#F3F4F6] py-3 items-center active:opacity-85"
-                >
-                  <Text className="text-text font-bold">{t('common.cancel')}</Text>
-                </Pressable>
-                <Pressable
-                  onPress={async () => {
-                    const name = editName.trim() || userName;
-                    const email = editEmail.trim() || userEmail;
-                    await setUserProfile(name, email);
-                    setEditVisible(false);
-                  }}
-                  className="flex-1 rounded-2xl bg-[#E04E4E] py-3 items-center active:opacity-85"
-                >
-                  <Text className="text-white font-bold">{t('common.save')}</Text>
-                </Pressable>
-              </View>
-            </Pressable>
-          </Pressable>
-        </Modal>
+        <AppDialog
+          visible={editVisible}
+          onClose={() => setEditVisible(false)}
+          title={t('settings.editProfileTitle')}
+          iconName="create-outline"
+          footer={(
+            <View className="flex-row gap-3">
+              <Pressable
+                onPress={() => setEditVisible(false)}
+                className="flex-1 rounded-2xl bg-elevated py-3 items-center active:opacity-85"
+              >
+                <Text className="text-text font-bold">{t('common.cancel')}</Text>
+              </Pressable>
+              <Pressable
+                onPress={async () => {
+                  const name = editName.trim() || userName;
+                  const email = editEmail.trim() || userEmail;
+                  await setUserProfile(name, email);
+                  setEditVisible(false);
+                }}
+                className="flex-1 rounded-2xl bg-danger py-3 items-center active:opacity-85"
+              >
+                <Text className="text-white font-bold">{t('common.save')}</Text>
+              </Pressable>
+            </View>
+          )}
+        >
+          <View className="gap-3">
+            <TextField
+              label={t('settings.nameLabel')}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder={t('settings.namePlaceholder')}
+            />
+            <TextField
+              label={t('settings.emailLabel')}
+              value={editEmail}
+              onChangeText={setEditEmail}
+              placeholder={t('settings.emailPlaceholder')}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+        </AppDialog>
 
         <Card>
           <RowNav
@@ -241,6 +275,8 @@ export function SettingsScreen() {
                 <Text className="text-muted text-xs mt-0.5">
                   {syncBusy
                     ? t('settings.syncing')
+                    : !isLoggedIn
+                      ? t('settings.syncSignInRequired')
                     : lastSyncAt
                       ? t('settings.syncStatusSubtitle', { minutes: Math.max(1, Math.floor((Date.now() - lastSyncAt) / 60000)) })
                       : t('settings.notSyncedYet')}
@@ -250,13 +286,25 @@ export function SettingsScreen() {
             <Pressable
               onPress={async () => {
                 const ok = await backupNow();
-                if (!ok) {
-                  Alert.alert(t('settings.backupNow'), t('settings.backupFailed'));
+                if (ok) {
+                  setBackupDialog({
+                    title: t('settings.backupSuccessTitle'),
+                    description: t('settings.backupSuccessBody'),
+                    tone: 'default',
+                    iconName: 'cloud-done-outline',
+                  });
+                  return;
                 }
+                setBackupDialog({
+                  title: t('settings.backupNow'),
+                  description: isLoggedIn ? t('settings.backupFailed') : t('settings.syncSignInRequired'),
+                  tone: 'danger',
+                  iconName: 'cloud-offline-outline',
+                });
               }}
-              disabled={syncBusy}
+              disabled={syncBusy || !isLoggedIn}
               className="rounded-full bg-[#E04E4E] px-4 py-2 active:opacity-85"
-              style={syncBusy ? { opacity: 0.6 } : undefined}
+              style={syncBusy || !isLoggedIn ? { opacity: 0.6 } : undefined}
             >
               <Text className="text-white text-xs font-bold">{t('settings.backupNow')}</Text>
             </Pressable>
@@ -326,20 +374,7 @@ export function SettingsScreen() {
             {t('settings.deleteAllWarning')}
           </Text>
           <Pressable
-            onPress={() => {
-              Alert.alert(t('settings.deleteAllConfirmTitle'), t('settings.deleteAllConfirmBody'), [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                  text: t('common.delete'),
-                  style: 'destructive',
-                  onPress: () => {
-                    initDb();
-                    db.execSync('DELETE FROM attachments;');
-                    db.execSync('DELETE FROM entries;');
-                  },
-                },
-              ]);
-            }}
+            onPress={() => setDeleteAllVisible(true)}
             className="mt-4 rounded-2xl bg-danger px-4 py-3 items-center active:opacity-85"
           >
             <Text className="text-card font-extrabold">{t('settings.deleteAll')}</Text>
@@ -347,24 +382,8 @@ export function SettingsScreen() {
         </Card>
 
         <Pressable
-          onPress={() => {
-            Alert.alert(
-              t('settings.signOutTitle'),
-              t('settings.signOutBody'),
-              [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                  text: t('settings.signOutCta'),
-                  style: 'destructive',
-                  onPress: async () => {
-                    await useSettingsStore.getState().signOut();
-                    navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
-                  },
-                },
-              ],
-            );
-          }}
-          className="mt-2 rounded-2xl border border-[#E9ECEF] bg-card py-4 flex-row items-center justify-center gap-2 active:opacity-85"
+          onPress={() => setSignOutVisible(true)}
+          className="mt-2 rounded-2xl border border-elevated bg-card py-4 flex-row items-center justify-center gap-2 active:opacity-85"
         >
           <AppIcon name="log-out-outline" size={20} color="#E04E4E" />
           <Text className="text-[#E04E4E] font-extrabold text-base">{t('settings.signOutCta')}</Text>
@@ -372,6 +391,59 @@ export function SettingsScreen() {
 
         <Text className="text-muted text-center text-xs mt-4">{'SERENE JOURNAL\nVersion 1.0.0'}</Text>
       </ScrollView>
+
+      <ConfirmDialog
+        visible={deleteAllVisible}
+        onClose={() => setDeleteAllVisible(false)}
+        title={t('settings.deleteAllConfirmTitle')}
+        description={t('settings.deleteAllWarning')}
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        onConfirm={async () => {
+          initDb();
+          db.execSync('DELETE FROM attachments;');
+          db.execSync('DELETE FROM entries;');
+          setEntries([]);
+        }}
+      />
+
+      <ConfirmDialog
+        visible={signOutVisible}
+        onClose={() => setSignOutVisible(false)}
+        title={t('settings.signOutTitle')}
+        description={t('settings.signOutBody')}
+        confirmLabel={t('settings.signOutCta')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        iconName="log-out-outline"
+        onConfirm={async () => {
+          await useSettingsStore.getState().signOut();
+          navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+        }}
+      />
+
+      <AppDialog
+        visible={Boolean(backupDialog)}
+        onClose={() => setBackupDialog(null)}
+        title={backupDialog?.title}
+        description={backupDialog?.description}
+        tone={backupDialog?.tone}
+        iconName={backupDialog?.iconName}
+        footer={(
+          <Pressable
+            onPress={() => setBackupDialog(null)}
+            className={[
+              'rounded-2xl py-3 items-center active:opacity-85',
+              backupDialog?.tone === 'danger' ? 'bg-danger' : 'bg-accent',
+            ].join(' ')}
+          >
+            <Text className={backupDialog?.tone === 'danger' ? 'text-white font-bold' : 'text-text font-bold'}>
+              {t('common.ok')}
+            </Text>
+          </Pressable>
+        )}
+      />
     </Screen>
   );
 }
@@ -396,7 +468,7 @@ function RowToggle({
   return (
     <View className="flex-row items-center justify-between">
       <View className="flex-row items-center gap-3 flex-1 pr-4">
-        <View className="h-10 w-10 rounded-2xl bg-[#F3F4F6] items-center justify-center">
+        <View className="h-10 w-10 rounded-2xl bg-elevated items-center justify-center">
           <AppIcon name={iconName} size={20} color="#E04E4E" />
         </View>
         <View className="flex-1">
@@ -417,41 +489,85 @@ function RowToggle({
 
 function ThemeRow() {
   const { t } = useTranslation();
-  const [active, setActive] = React.useState<'light' | 'dark'>('light');
-  const isLight = active === 'light';
+  const theme = useSettingsStore((s) => s.theme);
+  const setTheme = useSettingsStore((s) => s.setTheme);
+  const [selectVisible, setSelectVisible] = React.useState(false);
+  const options = React.useMemo(
+    () => [
+      { value: 'system' as const, label: t('settings.themeSystem'), iconName: 'phone-portrait-outline' as const },
+      { value: 'light' as const, label: t('settings.themeLight'), iconName: 'sunny-outline' as const },
+      { value: 'dark' as const, label: t('settings.themeDark'), iconName: 'moon-outline' as const },
+    ],
+    [t]
+  );
+  const selectedOption = options.find((option) => option.value === theme) ?? options[0];
 
   return (
-    <View className="flex-row items-center justify-between">
-      <View className="flex-row items-center gap-3">
-        <View className="h-10 w-10 rounded-2xl bg-[#F3F4F6] items-center justify-center">
-          <AppIcon name="settings-outline" size={20} color="#6B6F75" />
+    <>
+      <View className="flex-row items-center justify-between gap-3">
+        <View className="flex-row items-center gap-3 flex-1 pr-2">
+          <View className="h-10 w-10 rounded-2xl bg-elevated items-center justify-center">
+            <AppIcon name="settings-outline" size={20} color="#6B6F75" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-text font-extrabold">{t('settings.appTheme')}</Text>
+          </View>
         </View>
-        <Text className="text-text font-extrabold">{t('settings.appTheme')}</Text>
+
+        <Pressable
+          onPress={() => setSelectVisible(true)}
+          className="min-w-[132px] flex-row items-center justify-between gap-2 rounded-2xl border border-elevated bg-elevated px-3 py-2 active:opacity-85"
+        >
+          <View className="flex-row items-center gap-2 flex-1">
+            <AppIcon name={selectedOption.iconName} size={15} color="#E04E4E" />
+            <Text numberOfLines={1} className="text-text text-xs font-bold">
+              {selectedOption.label}
+            </Text>
+          </View>
+          <AppIcon name="chevron-down" size={16} color="#8B919A" />
+        </Pressable>
       </View>
 
-      <View className="flex-row rounded-full bg-[#F3F4F6] p-1">
-        <Pressable
-          onPress={() => setActive('light')}
-          style={[
-            { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 },
-            isLight && { backgroundColor: '#FFFFFF', elevation: 1 },
-          ]}
-        >
-          <AppIcon name="sunny-outline" size={14} color={isLight ? '#E04E4E' : '#A9ADB2'} />
-          <Text style={{ fontSize: 12, fontWeight: '700', color: isLight ? '#111217' : '#A9ADB2' }}>{t('settings.themeLight')}</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setActive('dark')}
-          style={[
-            { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 },
-            !isLight && { backgroundColor: '#FFFFFF', elevation: 1 },
-          ]}
-        >
-          <AppIcon name="moon-outline" size={14} color={!isLight ? '#E04E4E' : '#A9ADB2'} />
-          <Text style={{ fontSize: 12, fontWeight: '700', color: !isLight ? '#111217' : '#A9ADB2' }}>{t('settings.themeDark')}</Text>
-        </Pressable>
-      </View>
-    </View>
+      <AppDialog
+        visible={selectVisible}
+        onClose={() => setSelectVisible(false)}
+        title={t('settings.appTheme')}
+        iconName="color-palette-outline"
+      >
+        <View className="gap-2">
+          {options.map((option) => {
+            const selected = option.value === theme;
+            return (
+              <Pressable
+                key={option.value}
+                onPress={async () => {
+                  await setTheme(option.value);
+                  setSelectVisible(false);
+                }}
+                className={[
+                  'flex-row items-center justify-between rounded-2xl border px-4 py-4 active:opacity-85',
+                  selected ? 'border-danger bg-elevated' : 'border-elevated bg-card',
+                ].join(' ')}
+              >
+                <View className="flex-row items-center gap-3 flex-1 pr-3">
+                  <View
+                    className={[
+                      'h-10 w-10 rounded-2xl items-center justify-center',
+                      selected ? 'bg-danger' : 'bg-elevated',
+                    ].join(' ')}
+                  >
+                    <AppIcon name={option.iconName} size={18} color={selected ? '#FFFFFF' : '#A9ADB2'} />
+                  </View>
+                  <Text className="text-text font-extrabold">{option.label}</Text>
+                </View>
+
+                {selected ? <AppIcon name="checkmark" size={20} color="#E04E4E" /> : null}
+              </Pressable>
+            );
+          })}
+        </View>
+      </AppDialog>
+    </>
   );
 }
 
@@ -470,8 +586,8 @@ function RowNav({
     <Pressable onPress={onPress} className="active:opacity-85">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3 flex-1 pr-4">
-          <View className="h-10 w-10 rounded-2xl bg-[#F3F4F6] items-center justify-center">
-            <AppIcon name={iconName} size={20} color="#6B6F75" />
+          <View className="h-10 w-10 rounded-2xl bg-elevated items-center justify-center">
+            <AppIcon name={iconName} size={20} color="#A9ADB2" />
           </View>
           <View className="flex-1">
             <Text className="text-text font-extrabold">{title}</Text>
@@ -483,4 +599,3 @@ function RowNav({
     </Pressable>
   );
 }
-

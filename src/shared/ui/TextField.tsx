@@ -10,9 +10,9 @@ export function TextField({ label, className, ...rest }: Props) {
     <View className="w-full">
       {label ? <Text className="text-muted mb-2 text-xs">{label}</Text> : null}
       <TextInput
-        placeholderTextColor="#7f8bb7"
+        placeholderTextColor="#8B919A"
         className={[
-          'w-full rounded-2xl border border-white/10 bg-card px-4 py-3 text-text',
+          'w-full rounded-2xl border border-elevated bg-card px-4 py-3 text-text',
           className ?? '',
         ].join(' ')}
         {...rest}

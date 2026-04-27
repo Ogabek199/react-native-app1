@@ -1,14 +1,18 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import * as React from 'react';
+import { View, useColorScheme as useSystemColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Notifications from 'expo-notifications';
 import { LocaleConfig } from 'react-native-calendars';
+import { StatusBar } from 'expo-status-bar';
+import { useColorScheme as useNativewindColorScheme, vars } from 'nativewind';
 
 import { RootNavigator } from './navigation/RootNavigator';
 import { useSettingsStore } from '../store/useSettingsStore';
 import i18n from '../shared/i18n/i18n';
-import { cancelReminder, scheduleDailyReminder } from '../features/notifications/dailyReminder';
+import scheduleDailyReminder, { cancelReminder } from '../features/notifications/dailyReminder';
+import { getDailyReminderBody } from '../features/notifications/reminderConfig';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -61,11 +65,70 @@ export function AppProviders() {
   const hydrate = useSettingsStore((s) => s.hydrate);
   const hydrated = useSettingsStore((s) => s.hydrated);
   const language = useSettingsStore((s) => s.language);
+  const theme = useSettingsStore((s) => s.theme);
   const [unlocked, setUnlocked] = React.useState(false);
+  const systemScheme = useSystemColorScheme();
+  const { setColorScheme } = useNativewindColorScheme();
+  const effectiveScheme = theme === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : theme;
+  const themeVars = React.useMemo(
+    () =>
+      vars(
+        effectiveScheme === 'dark'
+          ? {
+              '--color-page': '11 12 15',
+              '--color-card': '20 22 27',
+              '--color-elevated': '30 34 42',
+              '--color-text': '244 245 247',
+              '--color-text2': '193 197 204',
+              '--color-muted': '139 145 154',
+              '--color-accent': '245 188 164',
+              '--color-accent2': '166 212 192',
+              '--color-success': '76 175 80',
+              '--color-warning': '245 179 1',
+              '--color-danger': '224 78 78',
+              '--color-overlay': '0 0 0',
+            }
+          : {
+              '--color-page': '251 250 248',
+              '--color-card': '255 255 255',
+              '--color-elevated': '241 237 235',
+              '--color-text': '17 18 23',
+              '--color-text2': '107 111 117',
+              '--color-muted': '169 173 178',
+              '--color-accent': '245 188 164',
+              '--color-accent2': '166 212 192',
+              '--color-success': '76 175 80',
+              '--color-warning': '245 179 1',
+              '--color-danger': '224 78 78',
+              '--color-overlay': '9 10 11',
+            },
+      ),
+    [effectiveScheme],
+  );
+  const navigationTheme = React.useMemo(() => {
+    const base = effectiveScheme === 'dark' ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        primary: '#E04E4E',
+        background: effectiveScheme === 'dark' ? '#0B0C0F' : '#FBFAF8',
+        card: effectiveScheme === 'dark' ? '#14161B' : '#FFFFFF',
+        text: effectiveScheme === 'dark' ? '#F4F5F7' : '#111217',
+        border: effectiveScheme === 'dark' ? '#1E222A' : '#F1EDEB',
+        notification: '#E04E4E',
+      },
+    };
+  }, [effectiveScheme]);
 
   React.useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  React.useEffect(() => {
+    if (!hydrated) return;
+    setColorScheme(effectiveScheme);
+  }, [hydrated, effectiveScheme, setColorScheme]);
 
   const prevLangRef = React.useRef(language);
   React.useEffect(() => {
@@ -89,7 +152,11 @@ export function AppProviders() {
               await cancelReminder(r.notificationId);
               const nid = await scheduleDailyReminder(
                 { hour: r.hour, minute: r.minute },
-                { title: i18n.t('notifications.dailyReminderTitle'), body: i18n.t('notifications.dailyReminderBody') },
+                {
+                  title: i18n.t('notifications.dailyReminderTitle'),
+                  body: getDailyReminderBody(r.message, i18n.t('notifications.dailyReminderBody')),
+                  sound: r.sound,
+                },
               );
               return { ...r, notificationId: nid };
             }),
@@ -120,9 +187,12 @@ export function AppProviders() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        {unlocked ? <RootNavigator /> : null}
-      </NavigationContainer>
+      <View className="flex-1" style={themeVars}>
+        <StatusBar style={effectiveScheme === 'dark' ? 'light' : 'dark'} />
+        <NavigationContainer theme={navigationTheme}>
+          {unlocked ? <RootNavigator /> : null}
+        </NavigationContainer>
+      </View>
     </SafeAreaProvider>
   );
 }
